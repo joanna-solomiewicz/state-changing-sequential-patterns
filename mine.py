@@ -22,10 +22,14 @@ def splitEventsStates(dataframe):
     return events, states 
 
 def main():
-    diabetes = pd.read_csv("data/diabetes/data-01", sep="\t", header = None, names=["date", "time", "code", "value"], parse_dates={"datetime": ["date", "time"]})
-    diabetes = diabetes.sort_values(by = ["datetime"], ascending = True)
+    diabetes = pd.read_csv("data/diabetes/data-01", sep="\t", header = None, names=["date", "time", "code", "value"], parse_dates=["date", "time"])
+    diabetes["time"] = diabetes["time"].apply(lambda x: x.strftime("%H:%M:%S"))
+    diabetes = diabetes.sort_values(by = ["date", "time"], ascending = True)
     diabetes = discretizeGlucose(diabetes)
     events, states = splitEventsStates(diabetes)
+    states_by_day = states.groupby("date")
+    for _, group in states_by_day:
+        print(group)
 
 if __name__ == "__main__":
     main()
