@@ -21,23 +21,23 @@ def splitEventsStates(dataframe):
     states = dataframe[~code_mask]
     return events, states 
 
-# function that finds subsequences which contain a change of state from low to normal in a single day sequence of a patient
-def subsequencesInStatesLowToNormal(states_by_day):
+# function that finds subsequences which contain a change of state from one to another in a single day sequence of a patient
+def subsequencesInStates(states_by_day, from_level, to_level):
     subsequences = []
     for _, group in states_by_day:   # _ is a day we group by, group is dataframe of measurements in that group
-        lowPosition = False
+        fromPosition = False
         sequence = []
         for _, measurement in group.iterrows(): # _ is an index of iterator, measurement is a row in our group
             #already adding sequence, keep adding till glucose raises
-            if (lowPosition):
+            if (fromPosition):
                 sequence.append(measurement)
-                if(measurement["value"] == glucose.normal):
-                    lowPosition = False
+                if(measurement["value"] == to_level):
+                    fromPosition = False
                     subsequences.append(sequence)
             #not adding sequence yet, if glucose.low we start adding and clear any previous one (that didn't contain change)
             else:
-                if(measurement["value"] == glucose.low):
-                    lowPosition = True
+                if(measurement["value"] == from_level):
+                    fromPosition = True
                     sequence.clear()
                     sequence.append(measurement)
     return subsequences
@@ -65,7 +65,10 @@ def main():
     diabetes = discretizeGlucose(diabetes)
     events, states = splitEventsStates(diabetes)
     states_by_day = states.groupby("date")
-    subsequencesLowToNormal = subsequencesInStatesLowToNormal(states_by_day)
+    subsequencesLowToNormal = subsequencesInStates(states_by_day, glucose.low, glucose.normal)
+    timeRangesLowToNormal = timeRangesOfSubsequences(subsequencesLowToNormal)
+    subsequencesHighToNormal = subsequencesInStates(states_by_day, glucose.high, glucose.normal)
+    timeRangesHighToNormal = timeRangesOfSubsequences(subsequencesHighToNormal)
 
 if __name__ == "__main__":
     main()
