@@ -31,7 +31,7 @@ def subsequencesInStatesLowToNormal(states_by_day):
             #already adding sequence, keep adding till glucose raises
             if (lowPosition):
                 sequence.append(measurement)
-                if(measurement["value"] != glucose.low):
+                if(measurement["value"] == glucose.normal):
                     lowPosition = False
                     subsequences.append(sequence)
             #not adding sequence yet, if glucose.low we start adding and clear any previous one (that didn't contain change)
@@ -42,9 +42,19 @@ def subsequencesInStatesLowToNormal(states_by_day):
                     sequence.append(measurement)
     return subsequences
 
+def timeRangeOfSubsequence(subsequence):
+    timeRange = []
+    first = (subsequence[0].loc["date"], subsequence[0].loc["time"])
+    timeRange.append(first)
+    lastIndex = len(subsequence) - 1
+    last = (subsequence[lastIndex].loc["date"], subsequence[lastIndex].loc["time"])
+    timeRange.append(last)
+    return timeRange
+
 def main():
     diabetes = pd.read_csv("data/diabetes/data-01", sep="\t", header = None, names=["date", "time", "code", "value"], parse_dates=["date", "time"])
-    diabetes["time"] = diabetes["time"].apply(lambda x: x.strftime("%H:%M:%S"))
+    diabetes["time"] = diabetes["time"].apply(lambda x: x.time())
+    diabetes["date"] = diabetes["date"].apply(lambda x: x.date())
     diabetes = diabetes.sort_values(by = ["date", "time"], ascending = True)
     diabetes = discretizeGlucose(diabetes)
     events, states = splitEventsStates(diabetes)
