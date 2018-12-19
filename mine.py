@@ -16,6 +16,15 @@ def discretizeGlucose(dataframe):
     dataframe.loc[low_mask, "value"] = glucose.low
     return dataframe
 
+def prepareData():
+    diabetes = pd.read_csv("data/diabetes/data-01", sep="\t", header = None, names=["date", "time", "code", "value"], parse_dates=["date", "time"])
+    diabetes["time"] = diabetes["time"].apply(lambda x: x.time())
+    diabetes["date"] = diabetes["date"].apply(lambda x: x.date())
+    diabetes = diabetes.sort_values(by = ["date", "time"], ascending = True)
+    diabetes = discretizeGlucose(diabetes)
+    events, states = splitEventsStates(diabetes)
+    return events, states
+
 def splitEventsStates(dataframe):
     code_mask = (dataframe["code"] >= 48) & (dataframe["code"] <= 64)
     events = dataframe[code_mask]
@@ -70,21 +79,17 @@ def eventsOfTimeRanges(events, timeRanges):
         listOfEvents.append(eventsOfTimeRange(events, timeRanges[i]))
     return listOfEvents
 
-def main():
-    diabetes = pd.read_csv("data/diabetes/data-01", sep="\t", header = None, names=["date", "time", "code", "value"], parse_dates=["date", "time"])
-    diabetes["time"] = diabetes["time"].apply(lambda x: x.time())
-    diabetes["date"] = diabetes["date"].apply(lambda x: x.date())
-    diabetes = diabetes.sort_values(by = ["date", "time"], ascending = True)
-    diabetes = discretizeGlucose(diabetes)
-    events, states = splitEventsStates(diabetes)
+def getEventsLowToNormal(events, states):
     states_by_day = states.groupby("date")
-    subsequencesLowToNormal = subsequencesInStates(states_by_day, glucose.low, glucose.normal)
-    timeRangesLowToNormal = timeRangesOfSubsequences(subsequencesLowToNormal)
-    subsequencesHighToNormal = subsequencesInStates(states_by_day, glucose.high, glucose.normal)
-    timeRangesHighToNormal = timeRangesOfSubsequences(subsequencesHighToNormal)
-    eventsOfLowToNormal = eventsOfTimeRanges(events, timeRangesLowToNormal)
-    eventsOfHighToNormal = eventsOfTimeRanges(events, timeRangesHighToNormal)
-    ps = PrefixSpan(eventsOfLowToNormal)
+    subsequences = subsequencesInStates(states_by_day, glucose.low, glucose.normal)
+    timeRanges = timeRangesOfSubsequences(subsequences)
+    finalEvents = eventsOfTimeRanges(events, timeRanges)
+    return finalEvents
+
+def main():
+    events, states = prepareData()
+    eventsLowToNormal = getEventsLowToNormal(events, states)
+    ps = PrefixSpan(eventsLowToNormal)
     print(ps.frequent(2))
 
 if __name__ == "__main__":
