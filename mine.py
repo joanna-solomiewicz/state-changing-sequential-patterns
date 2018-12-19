@@ -57,6 +57,12 @@ def timeRangesOfSubsequences(subsequences):
         timeRanges.append(timeRangeOfSubsequence(subsequences[i]))
     return timeRanges
 
+def eventsOfTimeRange(events, timeRange):
+    day = timeRange[0][0]
+    minTime = timeRange[0][1]
+    maxTime = timeRange[1][1]
+    return events.loc[(events["date"] == day) & (events["time"] >= minTime) & (events["time"] <= maxTime)]
+
 def main():
     diabetes = pd.read_csv("data/diabetes/data-01", sep="\t", header = None, names=["date", "time", "code", "value"], parse_dates=["date", "time"])
     diabetes["time"] = diabetes["time"].apply(lambda x: x.time())
