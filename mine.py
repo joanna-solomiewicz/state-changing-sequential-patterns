@@ -63,6 +63,12 @@ def eventsOfTimeRange(events, timeRange):
     maxTime = timeRange[1][1]
     return events.loc[(events["date"] == day) & (events["time"] >= minTime) & (events["time"] <= maxTime)]
 
+def eventsOfTimeRanges(events, timeRanges):
+    listOfEvents = []
+    for i in range(0, len(timeRanges)):
+        listOfEvents.append(eventsOfTimeRange(events, timeRanges[i]))
+    return listOfEvents
+
 def main():
     diabetes = pd.read_csv("data/diabetes/data-01", sep="\t", header = None, names=["date", "time", "code", "value"], parse_dates=["date", "time"])
     diabetes["time"] = diabetes["time"].apply(lambda x: x.time())
@@ -75,6 +81,8 @@ def main():
     timeRangesLowToNormal = timeRangesOfSubsequences(subsequencesLowToNormal)
     subsequencesHighToNormal = subsequencesInStates(states_by_day, glucose.high, glucose.normal)
     timeRangesHighToNormal = timeRangesOfSubsequences(subsequencesHighToNormal)
+    eventsOfLowToNormal = eventsOfTimeRanges(events, timeRangesLowToNormal)
+    eventsOfHighToNormal = eventsOfTimeRanges(events, timeRangesHighToNormal)
 
 if __name__ == "__main__":
     main()
