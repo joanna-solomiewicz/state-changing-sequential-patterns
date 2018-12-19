@@ -1,5 +1,6 @@
 import pandas as pd
 from enum import Enum
+from prefixspan import PrefixSpan
 
 class glucose(Enum):
     low = 0
@@ -83,6 +84,8 @@ def main():
     timeRangesHighToNormal = timeRangesOfSubsequences(subsequencesHighToNormal)
     eventsOfLowToNormal = eventsOfTimeRanges(events, timeRangesLowToNormal)
     eventsOfHighToNormal = eventsOfTimeRanges(events, timeRangesHighToNormal)
+    ps = PrefixSpan(eventsOfLowToNormal)
+    print(ps.frequent(2))
 
 if __name__ == "__main__":
     main()
