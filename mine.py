@@ -61,7 +61,7 @@ def eventsOfTimeRange(events, timeRange):
     day = timeRange[0][0]
     minTime = timeRange[0][1]
     maxTime = timeRange[1][1]
-    return events.loc[(events["date"] == day) & (events["time"] >= minTime) & (events["time"] <= maxTime)]
+    return events.loc[(events["date"] == day) & (events["time"] >= minTime) & (events["time"] <= maxTime)]["code"].tolist()
 
 def eventsOfTimeRanges(events, timeRanges):
     listOfEvents = []
