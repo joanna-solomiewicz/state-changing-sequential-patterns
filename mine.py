@@ -17,7 +17,7 @@ def discretizeGlucose(dataframe):
     return dataframe
 
 def prepareData():
-    diabetes = pd.read_csv("data/diabetes/data-01", sep="\t", header = None, names=["date", "time", "code", "value"], parse_dates=["date", "time"])
+    diabetes = pd.read_csv("data/diabetes_merged_working.csv", sep="\t", header = None, names=["date", "time", "code", "value"], parse_dates=["date", "time"])
     diabetes["time"] = diabetes["time"].apply(lambda x: x.time())
     diabetes["date"] = diabetes["date"].apply(lambda x: x.date())
     diabetes = diabetes.sort_values(by = ["date", "time"], ascending = True)
