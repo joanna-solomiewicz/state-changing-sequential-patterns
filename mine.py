@@ -1,6 +1,7 @@
 import pandas as pd
 from enum import Enum
 from prefixspan import PrefixSpan
+import numpy as np
 
 class glucose(Enum):
     low = 0
@@ -17,7 +18,7 @@ def discretizeGlucose(dataframe):
     return dataframe
 
 def prepareData():
-    diabetes = pd.read_csv("data/diabetes_merged_working.csv", sep="\t", header = None, names=["date", "time", "code", "value"], parse_dates=["date", "time"])
+    diabetes = pd.read_csv("data/diabetes_merged.csv", sep="\t", header = None, names=["date", "time", "code", "value"], parse_dates=["date", "time"])
     diabetes["time"] = diabetes["time"].apply(lambda x: x.time())
     diabetes["date"] = diabetes["date"].apply(lambda x: x.date())
     diabetes = diabetes.sort_values(by = ["date", "time"], ascending = True)
