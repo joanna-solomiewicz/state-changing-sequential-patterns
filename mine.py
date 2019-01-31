@@ -110,6 +110,13 @@ def getEventsLowToNormal(events, states):
     finalEvents = eventsOfTimeRanges(events, timeRanges)
     return finalEvents
 
+def getEventsNormalToLow(events, states):
+    states_by_day = states.groupby("date")
+    subsequences = subsequencesInStates(states_by_day, glucose.normal, glucose.low)
+    timeRanges = timeRangesOfSubsequences(subsequences)
+    finalEvents = eventsOfTimeRanges(events, timeRanges)
+    return finalEvents
+
 # funciton that maps codes in result patterns to their equivalent description
 def describePatterns(patterns):
     described_patterns = patterns
@@ -118,17 +125,31 @@ def describePatterns(patterns):
             described_patterns[i][1][j] = eventsDictionary[item]
     return described_patterns
 
-def minePatterns(sequences):
+def minePatterns(sequences, threshold):
     ps = PrefixSpan(sequences)
-    patterns = ps.frequent(3)
+    patterns = ps.frequent(threshold)
     return patterns
 
 def main():
     events, states = prepareData()
+
+    # mine positive patterns
     eventsLowToNormal = getEventsLowToNormal(events, states)
-    patterns = minePatterns(eventsLowToNormal)
-    patterns_described = describePatterns(patterns)
-    print(patterns_described)
+    patterns_positive = minePatterns(eventsLowToNormal, 3)
+
+    # mine negative patterns
+    eventsNormalToLow = getEventsNormalToLow(events, states)
+    patterns_negative = minePatterns(eventsNormalToLow, 1)
+
+    # print patterns as codes
+    print("Positive patterns\n", patterns_positive)
+    print("Negative patterns\n", patterns_negative)
+
+    patterns_positive_described = describePatterns(patterns_positive)
+    patterns_negative_described = describePatterns(patterns_negative)
+    # print patterns as text
+    print("Positive patterns\n", patterns_positive_described)
+    print("Negative patterns\n", patterns_negative_described)
 
 if __name__ == "__main__":
     main()
