@@ -118,11 +118,15 @@ def describePatterns(patterns):
             described_patterns[i][1][j] = eventsDictionary[item]
     return described_patterns
 
+def minePatterns(sequences):
+    ps = PrefixSpan(sequences)
+    patterns = ps.frequent(3)
+    return patterns
+
 def main():
     events, states = prepareData()
     eventsLowToNormal = getEventsLowToNormal(events, states)
-    ps = PrefixSpan(eventsLowToNormal)
-    patterns = ps.frequent(3)
+    patterns = minePatterns(eventsLowToNormal)
     patterns_described = describePatterns(patterns)
     print(patterns_described)
 
