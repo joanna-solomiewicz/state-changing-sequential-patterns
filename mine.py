@@ -51,8 +51,8 @@ def prepareData():
 
 def splitEventsStates(dataframe):
     code_mask = (dataframe["code"] >= 48) & (dataframe["code"] <= 64)
-    events = dataframe[code_mask]
-    states = dataframe[~code_mask]
+    events = dataframe[~code_mask]
+    states = dataframe[code_mask]
     return events, states 
 
 # function that finds subsequences which contain a change of state from one to another in a single day sequence of a patient
@@ -176,21 +176,28 @@ def main():
     events, states = prepareData()
 
     # mine positive patterns
+    print("Getting events low to normal...")
     eventsLowToNormal = getEventsLowToNormal(events, states)
-    patterns_positive = minePatterns(eventsLowToNormal, 3)
+    print("Mining low to normal...")
+    patterns_positive = minePatterns(eventsLowToNormal, 100)
 
     # mine negative patterns
+    print("Getting events normal to low...")
     eventsNormalToLow = getEventsNormalToLow(events, states)
-    patterns_negative = minePatterns(eventsNormalToLow, 1)
+    print("Mining normal to low...")
+    patterns_negative = minePatterns(eventsNormalToLow, 100)
 
     # add confidence measure to patterns
+    print("Adding positive confidence...")
     positive_with_conf = addConfidenceOfPositivePatterns(patterns_positive, patterns_negative)
+    print("Adding negative confidence...")
     negative_with_conf = addConfidenceOfPositivePatterns(patterns_negative, patterns_positive)
 
     # print patterns as codes
     print("\nPositive patterns: conf supp pattern\n", positive_with_conf)
     print("\nNegative patterns: conf supp pattern\n", negative_with_conf)
 
+    print("Describing patterns...")
     patterns_positive_described = describePatterns(positive_with_conf)
     patterns_negative_described = describePatterns(negative_with_conf)
     # print patterns as text
