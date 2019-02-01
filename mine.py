@@ -121,8 +121,8 @@ def getEventsNormalToLow(events, states):
 def describePatterns(patterns):
     described_patterns = patterns
     for i, result_tuple in enumerate(described_patterns):
-        for j, item in enumerate(result_tuple[1]):
-            described_patterns[i][1][j] = eventsDictionary[item]
+        for j, item in enumerate(result_tuple[2]):
+            described_patterns[i][2][j] = eventsDictionary[item]
     return described_patterns
 
 def minePatterns(sequences, threshold):
@@ -130,8 +130,8 @@ def minePatterns(sequences, threshold):
     patterns = ps.frequent(threshold)
     return patterns
 
-def getConfidenceOfPositivePatterns(positive_patterns, negative_patterns):
-    confidence = []
+def addConfidenceOfPositivePatterns(positive_patterns, negative_patterns):
+    pattern_with_conf = []
     for positive in positive_patterns:
         for negative in negative_patterns:
             positive_threshold = positive[0]
@@ -141,16 +141,16 @@ def getConfidenceOfPositivePatterns(positive_patterns, negative_patterns):
             # if a pattern also appears in negative patterns, update it's confidence
             if(positive_pattern == negative_pattern):
                 value = positive_threshold/(positive_threshold+negative_threshold)
-                confidence.append((value, positive_pattern))
+                pattern_with_conf.append((value, positive_threshold, positive_pattern))
                 break
         # if a pattern doesn't appear in negative patterns
         else:
             value = positive_threshold/positive_threshold
-            confidence.append((value, positive_pattern))
-    return confidence
+            pattern_with_conf.append((value, positive_threshold, positive_pattern))
+    return pattern_with_conf
 
-def getConfidenceOfNegativePatterns(negative_patterns, positive_patterns):
-    confidence = []
+def addConfidenceOfNegativePatterns(negative_patterns, positive_patterns):
+    pattern_with_conf = []
     for negative in negative_patterns:
         for positive in positive_patterns:
             negative_threshold = negative[0]
@@ -160,13 +160,13 @@ def getConfidenceOfNegativePatterns(negative_patterns, positive_patterns):
             # if a pattern also appears in positive patterns, update it's confidence
             if(negative_pattern == positive_pattern):
                 value = negative_threshold/(positive_threshold+negative_threshold)
-                confidence.append((value, negative_pattern))
+                pattern_with_conf.append((value, negative_threshold, negative_pattern))
                 break
         # if a pattern doesn't appear in positive patterns
         else:
             value = negative_threshold/negative_threshold
-            confidence.append((value, negative_pattern))
-    return confidence
+            pattern_with_conf.append((value, negative_threshold, negative_pattern))
+    return pattern_with_conf
 
 def main():
     events, states = prepareData()
@@ -179,20 +179,16 @@ def main():
     eventsNormalToLow = getEventsNormalToLow(events, states)
     patterns_negative = minePatterns(eventsNormalToLow, 1)
 
-    # print positive confidence
-    confidence_positive = getConfidenceOfPositivePatterns(patterns_positive, patterns_negative)
-    print(confidence_positive)
-
-    # print negative confidence
-    confidence_negative = getConfidenceOfPositivePatterns(patterns_negative, patterns_positive)
-    print(confidence_negative)
+    # add confidence measure to patterns
+    positive_with_conf = addConfidenceOfPositivePatterns(patterns_positive, patterns_negative)
+    negative_with_conf = addConfidenceOfPositivePatterns(patterns_negative, patterns_positive)
 
     # print patterns as codes
-    print("Positive patterns\n", patterns_positive)
-    print("Negative patterns\n", patterns_negative)
+    print("Positive patterns\n", positive_with_conf)
+    print("Negative patterns\n", negative_with_conf)
 
-    patterns_positive_described = describePatterns(patterns_positive)
-    patterns_negative_described = describePatterns(patterns_negative)
+    patterns_positive_described = describePatterns(positive_with_conf)
+    patterns_negative_described = describePatterns(negative_with_conf)
     # print patterns as text
     print("Positive patterns\n", patterns_positive_described)
     print("Negative patterns\n", patterns_negative_described)
