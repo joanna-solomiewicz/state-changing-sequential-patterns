@@ -188,14 +188,14 @@ def main():
     negative_with_conf = addConfidenceOfPositivePatterns(patterns_negative, patterns_positive)
 
     # print patterns as codes
-    print("Positive patterns\n", positive_with_conf)
-    print("Negative patterns\n", negative_with_conf)
+    print("\nPositive patterns: conf supp pattern\n", positive_with_conf)
+    print("\nNegative patterns: conf supp pattern\n", negative_with_conf)
 
     patterns_positive_described = describePatterns(positive_with_conf)
     patterns_negative_described = describePatterns(negative_with_conf)
     # print patterns as text
-    print("Positive patterns\n", patterns_positive_described)
-    print("Negative patterns\n", patterns_negative_described)
+    print("\nPositive patterns: conf supp pattern\n", patterns_positive_described)
+    print("\nNegative patterns: conf supp pattern\n", patterns_negative_described)
 
     patternsToCSV(patterns_positive_described, "positive_patterns.csv")
     patternsToCSV(patterns_negative_described, "negative_patterns.csv")
