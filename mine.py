@@ -168,6 +168,10 @@ def addConfidenceOfNegativePatterns(negative_patterns, positive_patterns):
             pattern_with_conf.append((value, negative_threshold, negative_pattern))
     return pattern_with_conf
 
+def patternsToCSV(patterns, filename = "patterns.csv"):
+    df = pd.DataFrame(patterns)
+    df.to_csv(filename, index = False, header = ["confidence", "support", "pattern"])
+
 def main():
     events, states = prepareData()
 
@@ -192,6 +196,9 @@ def main():
     # print patterns as text
     print("Positive patterns\n", patterns_positive_described)
     print("Negative patterns\n", patterns_negative_described)
+
+    patternsToCSV(patterns_positive_described, "positive_patterns.csv")
+    patternsToCSV(patterns_negative_described, "negative_patterns.csv")
 
 if __name__ == "__main__":
     main()
