@@ -130,6 +130,44 @@ def minePatterns(sequences, threshold):
     patterns = ps.frequent(threshold)
     return patterns
 
+def getConfidenceOfPositivePatterns(positive_patterns, negative_patterns):
+    confidence = []
+    for positive in positive_patterns:
+        for negative in negative_patterns:
+            positive_threshold = positive[0]
+            positive_pattern = positive[1]
+            negative_threshold = negative[0]
+            negative_pattern = negative[1]
+            # if a pattern also appears in negative patterns, update it's confidence
+            if(positive_pattern == negative_pattern):
+                value = positive_threshold/(positive_threshold+negative_threshold)
+                confidence.append((value, positive_pattern))
+                break
+        # if a pattern doesn't appear in negative patterns
+        else:
+            value = positive_threshold/positive_threshold
+            confidence.append((value, positive_pattern))
+    return confidence
+
+def getConfidenceOfNegativePatterns(negative_patterns, positive_patterns):
+    confidence = []
+    for negative in negative_patterns:
+        for positive in positive_patterns:
+            negative_threshold = negative[0]
+            negative_pattern = negative[1]
+            positive_threshold = positive[0]
+            positive_pattern = positive[1]
+            # if a pattern also appears in positive patterns, update it's confidence
+            if(negative_pattern == positive_pattern):
+                value = negative_threshold/(positive_threshold+negative_threshold)
+                confidence.append((value, negative_pattern))
+                break
+        # if a pattern doesn't appear in positive patterns
+        else:
+            value = negative_threshold/negative_threshold
+            confidence.append((value, negative_pattern))
+    return confidence
+
 def main():
     events, states = prepareData()
 
@@ -140,6 +178,14 @@ def main():
     # mine negative patterns
     eventsNormalToLow = getEventsNormalToLow(events, states)
     patterns_negative = minePatterns(eventsNormalToLow, 1)
+
+    # print positive confidence
+    confidence_positive = getConfidenceOfPositivePatterns(patterns_positive, patterns_negative)
+    print(confidence_positive)
+
+    # print negative confidence
+    confidence_negative = getConfidenceOfPositivePatterns(patterns_negative, patterns_positive)
+    print(confidence_negative)
 
     # print patterns as codes
     print("Positive patterns\n", patterns_positive)
