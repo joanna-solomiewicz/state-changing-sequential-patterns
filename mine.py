@@ -32,12 +32,13 @@ eventsDictionary = {
 }
 
 def discretizeGlucose(dataframe):
+    dataframe["discret_val"] = ""
     high_mask = dataframe["value"] > 200
     normal_mask = (dataframe["value"] <= 200) & (dataframe["value"] >= 80)
     low_mask = dataframe["value"] < 80
-    dataframe.loc[high_mask, "value"] = glucose.high
-    dataframe.loc[normal_mask, "value"] = glucose.normal
-    dataframe.loc[low_mask, "value"] = glucose.low
+    dataframe.loc[high_mask, "discret_val"] = glucose.high
+    dataframe.loc[normal_mask, "discret_val"] = glucose.normal
+    dataframe.loc[low_mask, "discret_val"] = glucose.low
     return dataframe
 
 def prepareData():
@@ -65,12 +66,12 @@ def subsequencesInStates(states_by_day, from_level, to_level):
             #already adding sequence, keep adding till glucose raises
             if (fromPosition):
                 sequence.append(measurement)
-                if(measurement["value"] == to_level):
+                if(measurement["discret_val"] == to_level):
                     fromPosition = False
                     subsequences.append(sequence)
             #not adding sequence yet, if glucose.low we start adding and clear any previous one (that didn't contain change)
             else:
-                if(measurement["value"] == from_level):
+                if(measurement["discret_val"] == from_level):
                     fromPosition = True
                     sequence.clear()
                     sequence.append(measurement)
