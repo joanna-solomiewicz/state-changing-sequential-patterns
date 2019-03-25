@@ -101,7 +101,9 @@ def eventsOfTimeRange(events, timeRange):
 def eventsOfTimeRanges(events, timeRanges):
     listOfEvents = []
     for i in range(0, len(timeRanges)):
-        listOfEvents.append(eventsOfTimeRange(events, timeRanges[i]))
+        eventsInTimeRange = eventsOfTimeRange(events, timeRanges[i])
+        if len(eventsInTimeRange) != 0:
+            listOfEvents.append(eventsInTimeRange)
     return listOfEvents
 
 def getEventsLowToNormal(events, states):
