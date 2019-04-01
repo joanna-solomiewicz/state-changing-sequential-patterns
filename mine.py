@@ -1,8 +1,9 @@
+import sys
 import pandas as pd
-from enum import Enum
 from prefixspan import PrefixSpan
 import numpy as np
-from diabetes import prepareDataDiabetes, glucose, eventsDictionary
+from additional_types import value 
+from diabetes import prepareDataDiabetes, eventsDictionary
 
 # function that finds subsequences which contain a change of state from one to another in a single day sequence of a patient
 def subsequencesInStates(states_by_day, from_level, to_level):
@@ -17,7 +18,7 @@ def subsequencesInStates(states_by_day, from_level, to_level):
                 if(measurement["discret_val"] == to_level):
                     fromPosition = False
                     subsequences.append(sequence)
-            #not adding sequence yet, if glucose.low we start adding and clear any previous one (that didn't contain change)
+            #not adding sequence yet, if value.low we start adding and clear any previous one (that didn't contain change)
             else:
                 if(measurement["discret_val"] == from_level):
                     fromPosition = True
@@ -56,14 +57,14 @@ def eventsOfTimeRanges(events, timeRanges):
 
 def getEventsLowToNormal(events, states):
     states_by_day = states.groupby("date")
-    subsequences = subsequencesInStates(states_by_day, glucose.low, glucose.normal)
+    subsequences = subsequencesInStates(states_by_day, value.low, value.normal)
     timeRanges = timeRangesOfSubsequences(subsequences)
     finalEvents = eventsOfTimeRanges(events, timeRanges)
     return finalEvents
 
 def getEventsNormalToLow(events, states):
     states_by_day = states.groupby("date")
-    subsequences = subsequencesInStates(states_by_day, glucose.normal, glucose.low)
+    subsequences = subsequencesInStates(states_by_day, value.normal, value.low)
     timeRanges = timeRangesOfSubsequences(subsequences)
     finalEvents = eventsOfTimeRanges(events, timeRanges)
     return finalEvents
@@ -123,40 +124,67 @@ def patternsToCSV(patterns, filename = "patterns.csv"):
     df = pd.DataFrame(patterns)
     df.to_csv(filename, index = False, header = ["confidence", "support", "pattern"])
 
-def main():
+# 
+def getEvents(events, states, value_from, value_to):
+    states_by_day = states.groupby("date")
+    subsequences = subsequencesInStates(states_by_day, value_from, value_to)
+    timeRanges = timeRangesOfSubsequences(subsequences)
+    finalEvents = eventsOfTimeRanges(events, timeRanges)
+    return finalEvents
+
+def main(direction):
+
+    print(direction)
+
     events, states = prepareDataDiabetes()
+    print(events)
+    print(states)
 
-    # mine positive patterns
-    print("Getting events low to normal...")
-    eventsLowToNormal = getEventsLowToNormal(events, states)
-    print("Mining low to normal...")
-    patterns_positive = minePatterns(eventsLowToNormal, 100)
+    # positiveEvents = getEvents(events, states, value_from, value_to)
+    # print(positiveEvents)
+    # positivePatterns = minePatterns(positiveEvents, 100)
+    # print(positivePatterns)
 
-    # mine negative patterns
-    print("Getting events normal to low...")
-    eventsNormalToLow = getEventsNormalToLow(events, states)
-    print("Mining normal to low...")
-    patterns_negative = minePatterns(eventsNormalToLow, 100)
+    # negativeEvents = getEvents(events, states, value_to, value_from)
+    # negativePatterns = minePatterns(negativeEvents, 100)
+    # print(negativePatterns)
 
-    # add confidence measure to patterns
-    print("Adding positive confidence...")
-    positive_with_conf = addConfidenceOfPositivePatterns(patterns_positive, patterns_negative)
-    print("Adding negative confidence...")
-    negative_with_conf = addConfidenceOfPositivePatterns(patterns_negative, patterns_positive)
 
-    # print patterns as codes
-    print("\nPositive patterns: conf supp pattern\n", positive_with_conf)
-    print("\nNegative patterns: conf supp pattern\n", negative_with_conf)
+    # # mine positive patterns
+    # print("Getting events low to normal...")
+    # eventsLowToNormal = getEventsLowToNormal(events, states)
+    # print("Mining low to normal...")
+    # patterns_positive = minePatterns(eventsLowToNormal, 100)
 
-    print("Describing patterns...")
-    patterns_positive_described = describePatterns(positive_with_conf)
-    patterns_negative_described = describePatterns(negative_with_conf)
-    # print patterns as text
-    print("\nPositive patterns: conf supp pattern\n", patterns_positive_described)
-    print("\nNegative patterns: conf supp pattern\n", patterns_negative_described)
+    # # mine negative patterns
+    # print("Getting events normal to low...")
+    # eventsNormalToLow = getEventsNormalToLow(events, states)
+    # print("Mining normal to low...")
+    # patterns_negative = minePatterns(eventsNormalToLow, 100)
 
-    patternsToCSV(patterns_positive_described, "positive_patterns.csv")
-    patternsToCSV(patterns_negative_described, "negative_patterns.csv")
+    # # add confidence measure to patterns
+    # print("Adding positive confidence...")
+    # positive_with_conf = addConfidenceOfPositivePatterns(patterns_positive, patterns_negative)
+    # print("Adding negative confidence...")
+    # negative_with_conf = addConfidenceOfPositivePatterns(patterns_negative, patterns_positive)
+
+    # # print patterns as codes
+    # print("\nPositive patterns: conf supp pattern\n", positive_with_conf)
+    # print("\nNegative patterns: conf supp pattern\n", negative_with_conf)
+
+    # print("Describing patterns...")
+    # patterns_positive_described = describePatterns(positive_with_conf)
+    # patterns_negative_described = describePatterns(negative_with_conf)
+    # # print patterns as text
+    # print("\nPositive patterns: conf supp pattern\n", patterns_positive_described)
+    # print("\nNegative patterns: conf supp pattern\n", patterns_negative_described)
+
+    # patternsToCSV(patterns_positive_described, "positive_patterns.csv")
+    # patternsToCSV(patterns_negative_described, "negative_patterns.csv")
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) < 2:
+        print("Please provide required parameters.")
+        sys.exit()
+    direction = sys.argv[1]
+    main(direction)

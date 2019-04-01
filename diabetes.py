@@ -1,10 +1,5 @@
 import pandas as pd
-from enum import Enum
-
-class glucose(Enum):
-    low = 0
-    normal = 1
-    high = 2
+from additional_types import value 
 
 eventsDictionary = {
     33: "Regular insulin dose",
@@ -34,18 +29,19 @@ def prepareDataDiabetes():
     diabetes["time"] = diabetes["time"].apply(lambda x: x.time())
     diabetes["date"] = diabetes["date"].apply(lambda x: x.date())
     diabetes = diabetes.sort_values(by = ["date", "time"], ascending = True)
-    diabetes = discretizeGlucose(diabetes)
+    # diabetes = discretizeGlucose(diabetes)
     events, states = splitEventsStatesDiabetes(diabetes)
     return events, states
 
+# TO BE DELETED
 def discretizeGlucose(dataframe):
     dataframe["discret_val"] = ""
     high_mask = dataframe["value"] > 200
     normal_mask = (dataframe["value"] <= 200) & (dataframe["value"] >= 80)
     low_mask = dataframe["value"] < 80
-    dataframe.loc[high_mask, "discret_val"] = glucose.high
-    dataframe.loc[normal_mask, "discret_val"] = glucose.normal
-    dataframe.loc[low_mask, "discret_val"] = glucose.low
+    dataframe.loc[high_mask, "discret_val"] = value.high.value
+    dataframe.loc[normal_mask, "discret_val"] = value.normal.value
+    dataframe.loc[low_mask, "discret_val"] = value.low.value
     return dataframe
 
 def splitEventsStatesDiabetes(dataframe):
