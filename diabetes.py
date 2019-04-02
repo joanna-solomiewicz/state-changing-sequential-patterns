@@ -25,9 +25,12 @@ eventsDictionary = {
 }
 
 def prepareDataDiabetes():
-    diabetes = pd.read_csv("data/diabetes_merged.csv", sep="\t", header = None, names=["date", "time", "code", "value"], parse_dates=[["date", "time"]])
+    diabetes = pd.read_csv("data/diabetes/data-01", sep="\t", header = None, names=["date", "time", "code", "value"], parse_dates=[["date", "time"]])
     diabetes = diabetes.sort_values(by = ["date_time"], ascending = True)
+    diabetes["user"] = 1
     events, states = splitEventsStatesDiabetes(diabetes)
+    events.drop("value", axis=1, inplace=True)
+    states.drop("code", axis=1, inplace=True)
     return events, states
 
 def splitEventsStatesDiabetes(dataframe):
