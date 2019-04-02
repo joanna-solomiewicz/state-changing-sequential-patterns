@@ -29,8 +29,8 @@ def prepareDataDiabetes():
     diabetes = diabetes.sort_values(by = ["date_time"], ascending = True)
     diabetes["user"] = 1
     events, states = splitEventsStatesDiabetes(diabetes)
-    events.drop("value", axis=1, inplace=True)
-    states.drop("code", axis=1, inplace=True)
+    events = events.drop(columns="value")
+    states = states.drop(columns="code")
     return events, states
 
 def splitEventsStatesDiabetes(dataframe):
