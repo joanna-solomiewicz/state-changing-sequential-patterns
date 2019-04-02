@@ -25,24 +25,10 @@ eventsDictionary = {
 }
 
 def prepareDataDiabetes():
-    diabetes = pd.read_csv("data/diabetes_merged.csv", sep="\t", header = None, names=["date", "time", "code", "value"], parse_dates=["date", "time"])
-    diabetes["time"] = diabetes["time"].apply(lambda x: x.time())
-    diabetes["date"] = diabetes["date"].apply(lambda x: x.date())
-    diabetes = diabetes.sort_values(by = ["date", "time"], ascending = True)
-    # diabetes = discretizeGlucose(diabetes)
+    diabetes = pd.read_csv("data/diabetes_merged.csv", sep="\t", header = None, names=["date", "time", "code", "value"], parse_dates=[["date", "time"]])
+    diabetes = diabetes.sort_values(by = ["date_time"], ascending = True)
     events, states = splitEventsStatesDiabetes(diabetes)
     return events, states
-
-# TO BE DELETED
-def discretizeGlucose(dataframe):
-    dataframe["discret_val"] = ""
-    high_mask = dataframe["value"] > 200
-    normal_mask = (dataframe["value"] <= 200) & (dataframe["value"] >= 80)
-    low_mask = dataframe["value"] < 80
-    dataframe.loc[high_mask, "discret_val"] = value.high.value
-    dataframe.loc[normal_mask, "discret_val"] = value.normal.value
-    dataframe.loc[low_mask, "discret_val"] = value.low.value
-    return dataframe
 
 def splitEventsStatesDiabetes(dataframe):
     code_mask = (dataframe["code"] >= 48) & (dataframe["code"] <= 64)
