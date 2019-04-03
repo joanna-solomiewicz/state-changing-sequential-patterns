@@ -144,7 +144,9 @@ def getStatesSubsequencesOfUser(direction, states):
     subsequences = []
     sequence = []
     for idx, measurement in states.iterrows(): # idx is an index of iterator, measurement is a row in our user states
-        if(idx == 0 or states.iloc[idx-1]["value"] <= measurement["value"]):
+        if(idx == 0 or 
+            (direction == "up" and states.iloc[idx-1]["value"] <= measurement["value"]) or  # when dir is up
+            (direction == "down" and states.iloc[idx-1]["value"] >= measurement["value"])): # when dir is down
             sequence.append(measurement.copy())
         else:
             subsequences.append(sequence.copy())
@@ -158,6 +160,8 @@ def main(direction):
     events, states = prepareDataDiabetes()
 
     statesSubsequences = getStatesSubsequences(direction, states)
+    # statesSubsequences[user from list][sequences of user from tuple == 0][pattern from list]
+    print(statesSubsequences[0][0][0])
 
     # positiveEvents = getEvents(events, states, value_from, value_to)
     # print(positiveEvents)
