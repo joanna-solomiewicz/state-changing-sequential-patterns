@@ -2,7 +2,7 @@ import sys
 import pandas as pd
 from prefixspan import PrefixSpan
 import numpy as np
-from additional_types import value 
+from additional_types import value
 from diabetes import prepareDataDiabetes, eventsDictionary
 
 # function that finds subsequences which contain a change of state from one to another in a single day sequence of a patient
@@ -132,13 +132,32 @@ def getEvents(events, states, value_from, value_to):
     finalEvents = eventsOfTimeRanges(events, timeRanges)
     return finalEvents
 
+def getStatesSubsequences(direction, states):
+    subsequences_by_user = []
+    states_by_user = states.groupby("user")
+    for user, group in states_by_user:   # user is a user we group by, group is dataframe of measurements in that group
+        group.reset_index(drop=True, inplace=True)
+        subsequences_by_user.append((getStatesSubsequencesOfUser(direction, group), user))
+    return subsequences_by_user
+
+def getStatesSubsequencesOfUser(direction, states):
+    subsequences = []
+    sequence = []
+    for idx, measurement in states.iterrows(): # idx is an index of iterator, measurement is a row in our user states
+        if(idx == 0 or states.iloc[idx-1]["value"] <= measurement["value"]):
+            sequence.append(measurement.copy())
+        else:
+            subsequences.append(sequence.copy())
+            sequence.clear()
+            sequence.append(measurement.copy())
+    return subsequences
+
+
 def main(direction):
 
-    print(direction)
-
     events, states = prepareDataDiabetes()
-    print(events)
-    print(states)
+
+    statesSubsequences = getStatesSubsequences(direction, states)
 
     # positiveEvents = getEvents(events, states, value_from, value_to)
     # print(positiveEvents)
@@ -182,7 +201,7 @@ def main(direction):
     # patternsToCSV(patterns_positive_described, "positive_patterns.csv")
     # patternsToCSV(patterns_negative_described, "negative_patterns.csv")
 
-if __name__ == "__main__":
+if __name__ == "__main__": 
     if len(sys.argv) < 2:
         print("Please provide required parameters.")
         sys.exit()

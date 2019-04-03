@@ -1,5 +1,4 @@
 import pandas as pd
-from additional_types import value 
 
 eventsDictionary = {
     33: "Regular insulin dose",
@@ -25,9 +24,13 @@ eventsDictionary = {
 }
 
 def prepareDataDiabetes():
-    diabetes = pd.read_csv("data/diabetes/data-01", sep="\t", header = None, names=["date", "time", "code", "value"], parse_dates=[["date", "time"]])
-    diabetes = diabetes.sort_values(by = ["date_time"], ascending = True)
-    diabetes["user"] = 1
+    diabetes1 = pd.read_csv("data/diabetes/data-01", sep="\t", header = None, names=["date", "time", "code", "value"], parse_dates=[["date", "time"]])
+    diabetes2 = pd.read_csv("data/diabetes/data-02", sep="\t", header = None, names=["date", "time", "code", "value"], parse_dates=[["date", "time"]])
+    diabetes1 = diabetes1.sort_values(by = ["date_time"], ascending = True)
+    diabetes2 = diabetes2.sort_values(by = ["date_time"], ascending = True)
+    diabetes1["user"] = 1
+    diabetes2["user"] = 2
+    diabetes = pd.concat([diabetes1, diabetes2])
     events, states = splitEventsStatesDiabetes(diabetes)
     events = events.drop(columns="value")
     states = states.drop(columns="code")
@@ -36,5 +39,7 @@ def prepareDataDiabetes():
 def splitEventsStatesDiabetes(dataframe):
     code_mask = (dataframe["code"] >= 48) & (dataframe["code"] <= 64)
     events = dataframe[~code_mask]
+    events.reset_index(drop=True, inplace=True)
     states = dataframe[code_mask]
+    states.reset_index(drop=True, inplace=True)
     return events, states 
