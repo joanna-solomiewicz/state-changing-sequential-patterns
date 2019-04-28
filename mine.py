@@ -154,14 +154,42 @@ def getStatesSubsequencesOfUser(direction, states):
             sequence.append(measurement.copy())
     return subsequences
 
+def getEventsSubsequences(states, events):
+    subsequences_by_user = []
+    events_by_user = events.groupby("user")
+    for user, group in events_by_user:
+        group.reset_index(drop=True, inplace=True)
+        subsequences_by_user.append((getEventsSubsequencesOfUser(states, group, user), user))
+
+    return subsequences_by_user
+
+def getEventsSubsequencesOfUser(states, events, user):
+    subsequences = []
+    sequence = []
+
+    print(states[0][0][0], user)
+    # states description
+    # [ [([subsequences], userid)], [([subsequences], userid)], [([subsequences], userid)] ]
+    # subsequences = [subsequences_by_user[0] if subsequences_by_user[1] == user else '' for subsequences_by_user in states]
+    # print(subsequences)
+
+    # for idx, measurement in events.iterrows(): # idx is an index of iterator, measurement is a row in our user events
+
+    return subsequences
+
 
 def main(direction):
 
     events, states = prepareDataDiabetes()
 
     statesSubsequences = getStatesSubsequences(direction, states)
-    # statesSubsequences[user from list][sequences of user from tuple == 0][pattern from list]
-    print(statesSubsequences[0][0][0])
+    # statesSubsequences[user from list][sequences of user from tuple == 0][subsequence from list]
+    # print(statesSubsequences[0][0][0])
+
+    eventsSubsequences = getEventsSubsequences(statesSubsequences, events)
+
+
+
 
     # positiveEvents = getEvents(events, states, value_from, value_to)
     # print(positiveEvents)
