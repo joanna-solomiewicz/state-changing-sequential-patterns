@@ -154,28 +154,46 @@ def getStatesSubsequencesOfUser(direction, states):
             sequence.append(measurement.copy())
     return subsequences
 
-def getEventsSubsequences(states, events):
-    subsequences_by_user = []
-    events_by_user = events.groupby("user")
-    for user, group in events_by_user:
-        group.reset_index(drop=True, inplace=True)
-        subsequences_by_user.append((getEventsSubsequencesOfUser(states, group, user), user))
+# def getEventsSubsequences(states, events):
+#     subsequences_by_user = []
+#     events_by_user = events.groupby("user")
+#     for user, group in events_by_user:
+#         group.reset_index(drop=True, inplace=True)
+#         subsequences_by_user.append((getEventsSubsequencesOfUser(states, group, user), user))
 
-    return subsequences_by_user
+#     return subsequences_by_user
 
-def getEventsSubsequencesOfUser(states, events, user):
-    subsequences = []
-    sequence = []
+# def getEventsSubsequencesOfUser(states, events, user):
+#     subsequences = []
+#     sequence = []
 
-    print(states[0][0][0], user)
-    # states description
-    # [ [([subsequences], userid)], [([subsequences], userid)], [([subsequences], userid)] ]
-    # subsequences = [subsequences_by_user[0] if subsequences_by_user[1] == user else '' for subsequences_by_user in states]
-    # print(subsequences)
+#     # print(states[0])
+#     # print(states[0][0][0], user)
+#     # states description
+#     # [ [([subsequences], userid)], [([subsequences], userid)], [([subsequences], userid)] ]
+#     # subsequences = [subsequences_by_user[0] if subsequences_by_user[1] == user else '' for subsequences_by_user in states]
+#     # print(subsequences)
 
-    # for idx, measurement in events.iterrows(): # idx is an index of iterator, measurement is a row in our user events
+#     # for idx, measurement in events.iterrows(): # idx is an index of iterator, measurement is a row in our user events
 
-    return subsequences
+#     return subsequences
+
+def getEventsSubsequences(stateSubsequences, events):
+    eventsSubsequences = []
+    for stateSubsequencesOfUser, user in stateSubsequences:
+        userEventsSubsequences = []
+        userEvents = events[events.user == user]
+        userEvents.reset_index(drop=True, inplace=True)
+        for stateSubsequenceOfUser in stateSubsequencesOfUser:
+            minTimestamp = stateSubsequenceOfUser[0]["date_time"]
+            maxTimestamp = stateSubsequenceOfUser[-1]["date_time"]
+            difference = stateSubsequenceOfUser[-1]["value"] - stateSubsequenceOfUser[0]["value"]
+            subEvents = userEvents[(userEvents.date_time >= minTimestamp) & (userEvents.date_time <= maxTimestamp)].copy()
+            subEvents["difference"] = difference
+            userEventsSubsequences.append(subEvents)
+        eventsSubsequences.append(userEventsSubsequences)
+
+    return eventsSubsequences
 
 
 def main(direction):
