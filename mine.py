@@ -31,8 +31,10 @@ def getStatesSubsequencesOfUser(direction, states):
 
 def getEventsSubsequences(stateSubsequences, events):
     eventsSubsequences = []
+    eventsCodesSubsequences = []
     for stateSubsequencesOfUser, user in stateSubsequences:
         userEventsSubsequences = []
+        userEventsCodesSubsequences = []
         userEvents = events[events.user == user]
         userEvents.reset_index(drop=True, inplace=True)
         for stateSubsequenceOfUser in stateSubsequencesOfUser:
@@ -41,10 +43,12 @@ def getEventsSubsequences(stateSubsequences, events):
             difference = stateSubsequenceOfUser[-1]["value"] - stateSubsequenceOfUser[0]["value"]
             subEvents = userEvents[(userEvents.date_time >= minTimestamp) & (userEvents.date_time <= maxTimestamp)].copy()
             subEvents["difference"] = difference
-            userEventsSubsequences.append(subEvents["code"].tolist())
+            userEventsSubsequences.append(subEvents)
+            userEventsCodesSubsequences.append(subEvents["code"].tolist())
         eventsSubsequences.append(userEventsSubsequences)
+        eventsCodesSubsequences.append(userEventsCodesSubsequences)
 
-    return eventsSubsequences
+    return eventsSubsequences, eventsCodesSubsequences
 
 
 def main(direction):
@@ -55,9 +59,11 @@ def main(direction):
     # statesSubsequences[user from list][sequences of user from tuple == 0][subsequence from list]
     # print(statesSubsequences[0][0][0])
 
-    eventsSubsequences = getEventsSubsequences(statesSubsequences, events)
-    print(minePatterns(eventsSubsequences[0], 50))
-    print(minePatterns(eventsSubsequences[1], 50))
+    # eventsSubsequences[user from list][dataframe of eventsSubsequence]    subsequences of events
+    # eventsCodesSubsequences[user from list][event codes subsequence]      only codes from subsequences of events
+    eventsSubsequences, eventsCodesSubsequences = getEventsSubsequences(statesSubsequences, events)
+    print(minePatterns(eventsCodesSubsequences[0], 30))
+    print(minePatterns(eventsCodesSubsequences[1], 30))
 
 if __name__ == "__main__": 
     if len(sys.argv) < 2:
