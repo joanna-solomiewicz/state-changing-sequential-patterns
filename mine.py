@@ -190,7 +190,7 @@ def getEventsSubsequences(stateSubsequences, events):
             difference = stateSubsequenceOfUser[-1]["value"] - stateSubsequenceOfUser[0]["value"]
             subEvents = userEvents[(userEvents.date_time >= minTimestamp) & (userEvents.date_time <= maxTimestamp)].copy()
             subEvents["difference"] = difference
-            userEventsSubsequences.append(subEvents)
+            userEventsSubsequences.append(subEvents["code"].tolist())
         eventsSubsequences.append(userEventsSubsequences)
 
     return eventsSubsequences
@@ -205,6 +205,8 @@ def main(direction):
     # print(statesSubsequences[0][0][0])
 
     eventsSubsequences = getEventsSubsequences(statesSubsequences, events)
+    print(minePatterns(eventsSubsequences[0], 50))
+    print(minePatterns(eventsSubsequences[1], 50))
 
 
 
