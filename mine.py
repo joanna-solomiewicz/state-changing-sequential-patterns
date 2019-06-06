@@ -42,6 +42,8 @@ def getEventsSubsequences(stateSubsequences, events):
             maxTimestamp = stateSubsequenceOfUser[-1]["date_time"]
             difference = stateSubsequenceOfUser[-1]["value"] - stateSubsequenceOfUser[0]["value"]
             subEvents = userEvents[(userEvents.date_time >= minTimestamp) & (userEvents.date_time <= maxTimestamp)].copy()
+            if(subEvents.empty):
+                continue
             subEvents["difference"] = difference
             userEventsSubsequences.append(subEvents)
             userEventsCodesSubsequences.append(subEvents["code"].tolist())
