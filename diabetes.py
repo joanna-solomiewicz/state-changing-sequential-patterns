@@ -1,4 +1,5 @@
 import pandas as pd
+from os import listdir
 
 eventsDictionary = {
     33: "Regular insulin dose",
@@ -24,22 +25,30 @@ eventsDictionary = {
 }
 
 def prepareDataDiabetes():
-    diabetes1 = pd.read_csv("data/diabetes/data-01", sep="\t", header = None, names=["date", "time", "code", "value"], parse_dates=[["date", "time"]])
-    diabetes2 = pd.read_csv("data/diabetes/data-02", sep="\t", header = None, names=["date", "time", "code", "value"], parse_dates=[["date", "time"]])
-    diabetes1 = diabetes1.sort_values(by = ["date_time"], ascending = True)
-    diabetes2 = diabetes2.sort_values(by = ["date_time"], ascending = True)
-    diabetes1["user"] = 1
-    diabetes2["user"] = 2
-    diabetes = pd.concat([diabetes1, diabetes2])
+    diabetes = combineData()
     events, states = splitEventsStatesDiabetes(diabetes)
-    events = events.drop(columns="value")
-    states = states.drop(columns="code")
     return events, states
 
+def combineData():
+    diabetesCombined = pd.DataFrame()
+    for file in listdir("data/diabetes"):
+        user = file[-2:]
+        diabetes = readCSV("data/diabetes/data-" + user)
+        diabetes["user"] = int(user)
+        diabetesCombined = pd.concat([diabetesCombined, diabetes])
+    return diabetesCombined
+
+def readCSV(filename):
+    diabetes = pd.read_csv(filename, sep="\t", header = None, names=["date", "time", "code", "value"], parse_dates=[["date", "time"]])
+    diabetes = diabetes.sort_values(by = ["date_time"], ascending = True)
+    return diabetes
+    
 def splitEventsStatesDiabetes(dataframe):
     code_mask = (dataframe["code"] >= 48) & (dataframe["code"] <= 64)
     events = dataframe[~code_mask]
     events.reset_index(drop=True, inplace=True)
+    events = events.drop(columns="value")
     states = dataframe[code_mask]
     states.reset_index(drop=True, inplace=True)
+    states = states.drop(columns="code")
     return events, states 
