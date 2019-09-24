@@ -58,6 +58,14 @@ def getEventsSubsequences(stateSubsequences, events):
 
     return eventsSubsequences, eventsCodesSubsequences
 
+def addScoreToPatterns(patterns, userEventsSubsequences):
+    for pattern in patterns:
+        score = 0.0
+        for subsequence in userEventsSubsequences:
+            if subsequence["code"].tolist() == pattern:
+                score = score + subsequence.iloc[0]["difference"]
+        pattern = pattern + (score,)
+
 
 def main(direction, bide):
 
@@ -77,6 +85,7 @@ def main(direction, bide):
     # end = time.time()
     # print("Optimized: ", end-start)
 
+    addScoreToPatterns(patternsUser1, eventsSubsequences[0])
     print(patternsUser1)
 
     # events["date"] = np.nan
