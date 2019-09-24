@@ -7,6 +7,7 @@ def minePatterns(sequences, threshold):
     patterns = ps.frequent(threshold)
     return patterns
 
+# get monotonic subsequences of every user - increasing or decreasing
 def getStatesSubsequences(direction, states):
     subsequences_by_user = []
     states_by_user = states.groupby("user")
@@ -15,6 +16,7 @@ def getStatesSubsequences(direction, states):
         subsequences_by_user.append((getStatesSubsequencesOfUser(direction, group), user))
     return subsequences_by_user
 
+# get monotonic subsequences of user - increasing or decreasing
 def getStatesSubsequencesOfUser(direction, states):
     subsequences = []
     sequence = []
@@ -29,6 +31,7 @@ def getStatesSubsequencesOfUser(direction, states):
             sequence.append(measurement.copy())
     return subsequences
 
+# get event subsequences of every user during state subsequences change timeframe
 def getEventsSubsequences(stateSubsequences, events):
     eventsSubsequences = []
     eventsCodesSubsequences = []
@@ -42,7 +45,7 @@ def getEventsSubsequences(stateSubsequences, events):
             maxTimestamp = stateSubsequenceOfUser[-1]["date_time"]
             difference = stateSubsequenceOfUser[-1]["value"] - stateSubsequenceOfUser[0]["value"]
             subEvents = userEvents[(userEvents.date_time >= minTimestamp) & (userEvents.date_time <= maxTimestamp)].copy()
-            if(subEvents.empty):
+            if(len(subEvents) == 0 or difference == 0):  # only consider subsequences that have a change
                 continue
             subEvents["difference"] = difference
             userEventsSubsequences.append(subEvents)
@@ -55,17 +58,19 @@ def getEventsSubsequences(stateSubsequences, events):
 
 def main(direction):
 
+    # prepare raw data in expected format
+    # states has date_time, value, user
+    # events has data_time, code, user
     events, states = prepareDataDiabetes()
 
+    # statesSubsequences[user from list][sequences of user from tuple == 0 ([[seq],[seq],[seq]], user)][subsequence from list]
     statesSubsequences = getStatesSubsequences(direction, states)
-    # statesSubsequences[user from list][sequences of user from tuple == 0][subsequence from list]
-    # print(statesSubsequences[0][0][0])
 
     # eventsSubsequences[user from list][dataframe of eventsSubsequence]    subsequences of events
     # eventsCodesSubsequences[user from list][event codes subsequence]      only codes from subsequences of events
     eventsSubsequences, eventsCodesSubsequences = getEventsSubsequences(statesSubsequences, events)
-    print(minePatterns(eventsCodesSubsequences[0], 30))
-    print(minePatterns(eventsCodesSubsequences[1], 30))
+    patternsUser1 = minePatterns(eventsCodesSubsequences[0], 20)
+    print(patternsUser1)
 
 if __name__ == "__main__": 
     if len(sys.argv) < 2:

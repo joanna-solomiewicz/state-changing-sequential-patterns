@@ -16,7 +16,6 @@ python -V
 After making sure you have the specified python version, install these libraries:
 ```
 pip install pandas
-pip install numpy
 pip install prefixspan
 ```
 
