@@ -1,6 +1,9 @@
 import sys
 from prefixspan import PrefixSpan
 from diabetes import prepareDataDiabetes, eventsDictionary
+import numpy as np
+import time
+from datetime import date
 
 def minePatterns(sequences, threshold, ifclosed):
     ps = PrefixSpan(sequences)
@@ -69,8 +72,29 @@ def main(direction, bide):
     # eventsSubsequences[user from list][dataframe of eventsSubsequence]    subsequences of events
     # eventsCodesSubsequences[user from list][event codes subsequence]      only codes from subsequences of events
     eventsSubsequences, eventsCodesSubsequences = getEventsSubsequences(statesSubsequences, events)
+    # start = time.time()
     patternsUser1 = minePatterns(eventsCodesSubsequences[0], 20, bide)
+    # end = time.time()
+    # print("Optimized: ", end-start)
+
     print(patternsUser1)
+
+    # events["date"] = np.nan
+    # events["date"] = events.apply(lambda row: row["date_time"].date(), axis = 1)
+
+    # events_sequences = []
+    # events_by_day = events.groupby("date")
+    # for day, group in events_by_day: 
+    #     group.reset_index(drop=True, inplace=True)
+    #     events_in_day = group["code"].tolist()
+    #     events_sequences.append(events_in_day)
+
+    # start = time.time()
+    # patternsUser1_1 = minePatterns(events_sequences, 20, bide)
+    # end = time.time()
+    # print("Not optimized: ", end-start)
+
+    # print(patternsUser1_1)
 
 def inputHandling(argv):
     if len(argv) < 3:
