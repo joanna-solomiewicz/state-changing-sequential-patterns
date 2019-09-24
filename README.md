@@ -20,10 +20,21 @@ pip install prefixspan
 ```
 
 ## Running the project
+The project requires 2 parameters - direction and BIDE.
+
+Direction specifies which state changes are examined, increasing or decreasing. They should be provided as *up* or *down*.
+
+BIDE parameter states whether to use BIDE algorithm instead of PrefixSpan. It should be given as *true* or *1* for using BIDE, or *false* or *0* for using PrefixSpan.
+
 To run the project go to the project folder and type:
 ```
-python mine.py
+python mine.py <direction> <BIDE>
 ```
+Example:
+```
+python mine.py up true
+```
+
 
 ## Result
 As a result, the program prints all found patterns.

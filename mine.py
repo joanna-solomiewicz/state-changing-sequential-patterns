@@ -2,9 +2,9 @@ import sys
 from prefixspan import PrefixSpan
 from diabetes import prepareDataDiabetes, eventsDictionary
 
-def minePatterns(sequences, threshold):
+def minePatterns(sequences, threshold, ifclosed):
     ps = PrefixSpan(sequences)
-    patterns = ps.frequent(threshold)
+    patterns = ps.frequent(threshold, closed = ifclosed)
     return patterns
 
 # get monotonic subsequences of every user - increasing or decreasing
@@ -56,7 +56,7 @@ def getEventsSubsequences(stateSubsequences, events):
     return eventsSubsequences, eventsCodesSubsequences
 
 
-def main(direction):
+def main(direction, bide):
 
     # prepare raw data in expected format
     # states has date_time, value, user
@@ -69,12 +69,14 @@ def main(direction):
     # eventsSubsequences[user from list][dataframe of eventsSubsequence]    subsequences of events
     # eventsCodesSubsequences[user from list][event codes subsequence]      only codes from subsequences of events
     eventsSubsequences, eventsCodesSubsequences = getEventsSubsequences(statesSubsequences, events)
-    patternsUser1 = minePatterns(eventsCodesSubsequences[0], 20)
+    patternsUser1 = minePatterns(eventsCodesSubsequences[0], 20, bide)
     print(patternsUser1)
 
+
 if __name__ == "__main__": 
-    if len(sys.argv) < 2:
+    if len(sys.argv) < 3:
         print("Please provide required parameters.")
         sys.exit()
     direction = sys.argv[1]
-    main(direction)
+    bide = sys.argv[2]
+    main(direction, bide)
