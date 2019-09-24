@@ -72,11 +72,19 @@ def main(direction, bide):
     patternsUser1 = minePatterns(eventsCodesSubsequences[0], 20, bide)
     print(patternsUser1)
 
-
-if __name__ == "__main__": 
-    if len(sys.argv) < 3:
+def inputHandling(argv):
+    if len(argv) < 3:
         print("Please provide required parameters.")
         sys.exit()
+    if argv[1] not in ["up", "down"]:
+        print("Bad direction argument. Use \"up\" or \"down\".")
+        sys.exit()
+    if argv[2] not in ["true", "false", 1, 0]:
+        print("Bad BIDE argument. Use \"true\" or 1, or \"false\" or 0.")
+        sys.exit()
+
+if __name__ == "__main__": 
+    inputHandling(sys.argv)
     direction = sys.argv[1]
     bide = sys.argv[2]
     main(direction, bide)
