@@ -58,13 +58,58 @@ def getEventsSubsequences(stateSubsequences, events):
 
     return eventsSubsequences, eventsCodesSubsequences
 
+# def checkIfElementInList(element, list):
+#     try:
+#         list.index(element)
+#         return True
+#     except ValueError:
+#         return False
+
+def getElementIndex(element, list):
+    try:
+        return list.index(element)
+    except ValueError:
+        return -1
+
+# def checkIfAllElementsPositive(list):
+#     return all([getElementIndex(elem, list) for elem in list])
+
+# check if all pattern elements are in sequence
+def checkIfPatternElementsInSequence(pattern, sequence):
+    return all([True if elem > 0 else False for elem in [getElementIndex(elem, sequence) for elem in pattern]])
+
+# check if all pattern elements are in correct order in sequence
+def checkIfPatternElementsInSequenceInOrder(pattern, sequence):
+    sequence_copy = sequence.copy()
+    for index, _ in enumerate(pattern):
+        if len(pattern) == 1:
+            elementIndexInSequence = getElementIndex(pattern[index], sequence_copy)
+            if elementIndexInSequence < 0:
+                return False
+        if index < len(pattern) - 1:
+            elementIndexInSequence = getElementIndex(pattern[index], sequence_copy)
+            sequence_copy = sequence_copy[elementIndexInSequence+1:]
+            nextElementIndexInSequence = getElementIndex(pattern[index+1], sequence_copy)
+            if elementIndexInSequence < 0 or nextElementIndexInSequence < 0:
+                # print("Indexes:\t", elementIndexInSequence, " > ", nextElementIndexInSequence)
+                # print("Pattern:\t", pattern)
+                # print("Sequence:\t", sequence)
+                return False
+    return True
+
 def addScoreToPatterns(patterns, userEventsSubsequences):
+    patterns_w_score = []
     for pattern in patterns:
         score = 0.0
+        # for every pattern check in how many sequences it appears and add all differences as score measure
         for subsequence in userEventsSubsequences:
-            if subsequence["code"].tolist() == pattern:
+            # if subsequence["code"].tolist() == pattern[1]: #only checks if pattern == subsequence, not if pattern in subsequence
+            # if (all([checkIfElementInList(elem, subsequence["code"].tolist()) for elem in pattern[1]]) and ):
+            if (checkIfPatternElementsInSequence(pattern[1], subsequence["code"].tolist()) and checkIfPatternElementsInSequenceInOrder(pattern[1], subsequence["code"].tolist())):
                 score = score + subsequence.iloc[0]["difference"]
         pattern = pattern + (score,)
+        patterns_w_score.append(pattern)
+    return patterns_w_score
 
 
 def main(direction, bide):
@@ -80,13 +125,15 @@ def main(direction, bide):
     # eventsSubsequences[user from list][dataframe of eventsSubsequence]    subsequences of events
     # eventsCodesSubsequences[user from list][event codes subsequence]      only codes from subsequences of events
     eventsSubsequences, eventsCodesSubsequences = getEventsSubsequences(statesSubsequences, events)
+    # print(eventsSubsequences[0])
+    # print(eventsCodesSubsequences[0])
     # start = time.time()
-    patternsUser1 = minePatterns(eventsCodesSubsequences[0], 20, bide)
+    patternsUser1 = minePatterns(eventsCodesSubsequences[0], 10, bide)
     # end = time.time()
     # print("Optimized: ", end-start)
 
-    addScoreToPatterns(patternsUser1, eventsSubsequences[0])
-    print(patternsUser1)
+    patternsUser1Score = addScoreToPatterns(patternsUser1, eventsSubsequences[0])
+    print(patternsUser1Score)
 
     # events["date"] = np.nan
     # events["date"] = events.apply(lambda row: row["date_time"].date(), axis = 1)
