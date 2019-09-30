@@ -76,7 +76,7 @@ def getElementIndex(element, list):
 
 # check if all pattern elements are in sequence
 def checkIfPatternElementsInSequence(pattern, sequence):
-    return all([True if elem > 0 else False for elem in [getElementIndex(elem, sequence) for elem in pattern]])
+    return all([True if elem >= 0 else False for elem in [getElementIndex(elem, sequence) for elem in pattern]])
 
 # check if all pattern elements are in correct order in sequence
 def checkIfPatternElementsInSequenceInOrder(pattern, sequence):
@@ -97,6 +97,7 @@ def checkIfPatternElementsInSequenceInOrder(pattern, sequence):
                 return False
     return True
 
+# add a score measure to patterns - score is a sum of state differences in sequences where a pattern occurs
 def addScoreToPatterns(patterns, userEventsSubsequences):
     patterns_w_score = []
     for pattern in patterns:
