@@ -4,23 +4,15 @@ from diabetes import prepareDataDiabetes, eventsDictionary
 import numpy as np
 import time
 from datetime import date
+from os import path
 
 def minePatterns(sequences, threshold, ifclosed):
     ps = PrefixSpan(sequences)
     patterns = ps.frequent(threshold, closed = ifclosed)
     return patterns
 
-# get monotonic subsequences of every user - increasing or decreasing
+# get monotonic subsequences - increasing or decreasing
 def getStatesSubsequences(direction, states):
-    subsequences_by_user = []
-    states_by_user = states.groupby("user")
-    for user, group in states_by_user:   # user is a user we group by, group is dataframe of measurements in that group
-        group.reset_index(drop=True, inplace=True)
-        subsequences_by_user.append((getStatesSubsequencesOfUser(direction, group), user))
-    return subsequences_by_user
-
-# get monotonic subsequences of user - increasing or decreasing
-def getStatesSubsequencesOfUser(direction, states):
     subsequences = []
     sequence = []
     for idx, measurement in states.iterrows(): # idx is an index of iterator, measurement is a row in our user states
@@ -34,45 +26,28 @@ def getStatesSubsequencesOfUser(direction, states):
             sequence.append(measurement.copy())
     return subsequences
 
-# get event subsequences of every user during state subsequences change timeframe
+# get event subsequences during state subsequences change timeframe
 def getEventsSubsequences(stateSubsequences, events):
     eventsSubsequences = []
     eventsCodesSubsequences = []
-    for stateSubsequencesOfUser, user in stateSubsequences:
-        userEventsSubsequences = []
-        userEventsCodesSubsequences = []
-        userEvents = events[events.user == user]
-        userEvents.reset_index(drop=True, inplace=True)
-        for stateSubsequenceOfUser in stateSubsequencesOfUser:
-            minTimestamp = stateSubsequenceOfUser[0]["date_time"]
-            maxTimestamp = stateSubsequenceOfUser[-1]["date_time"]
-            difference = stateSubsequenceOfUser[-1]["value"] - stateSubsequenceOfUser[0]["value"]
-            subEvents = userEvents[(userEvents.date_time >= minTimestamp) & (userEvents.date_time <= maxTimestamp)].copy()
-            if(len(subEvents) == 0 or difference == 0):  # only consider subsequences that have a change
-                continue
-            subEvents["difference"] = difference
-            userEventsSubsequences.append(subEvents)
-            userEventsCodesSubsequences.append(subEvents["code"].tolist())
-        eventsSubsequences.append(userEventsSubsequences)
-        eventsCodesSubsequences.append(userEventsCodesSubsequences)
+    for stateSubsequence in stateSubsequences:
+        minTimestamp = stateSubsequence[0]["date_time"]
+        maxTimestamp = stateSubsequence[-1]["date_time"]
+        difference = stateSubsequence[-1]["value"] - stateSubsequence[0]["value"]
+        subEvents = events[(events.date_time >= minTimestamp) & (events.date_time <= maxTimestamp)].copy()
+        if(len(subEvents) == 0 or difference == 0):  # only consider subsequences that have a change
+            continue
+        subEvents["difference"] = difference
+        eventsSubsequences.append(subEvents)
+        eventsCodesSubsequences.append(subEvents["code"].tolist())
 
     return eventsSubsequences, eventsCodesSubsequences
-
-# def checkIfElementInList(element, list):
-#     try:
-#         list.index(element)
-#         return True
-#     except ValueError:
-#         return False
 
 def getElementIndex(element, list):
     try:
         return list.index(element)
     except ValueError:
         return -1
-
-# def checkIfAllElementsPositive(list):
-#     return all([getElementIndex(elem, list) for elem in list])
 
 # check if all pattern elements are in sequence
 def checkIfPatternElementsInSequence(pattern, sequence):
@@ -91,9 +66,6 @@ def checkIfPatternElementsInSequenceInOrder(pattern, sequence):
             sequence_copy = sequence_copy[elementIndexInSequence+1:]
             nextElementIndexInSequence = getElementIndex(pattern[index+1], sequence_copy)
             if elementIndexInSequence < 0 or nextElementIndexInSequence < 0:
-                # print("Indexes:\t", elementIndexInSequence, " > ", nextElementIndexInSequence)
-                # print("Pattern:\t", pattern)
-                # print("Sequence:\t", sequence)
                 return False
     return True
 
@@ -113,28 +85,26 @@ def addScoreToPatterns(patterns, userEventsSubsequences):
     return patterns_w_score
 
 
-def main(direction, bide):
+def main(direction, bide, filepath):
 
     # prepare raw data in expected format
-    # states has date_time, value, user
-    # events has data_time, code, user
-    events, states = prepareDataDiabetes()
+    # states has date_time, value
+    # events has data_time, code
+    events, states = prepareDataDiabetes(filepath)
 
-    # statesSubsequences[user from list][sequences of user from tuple == 0 ([[seq],[seq],[seq]], user)][subsequence from list]
+    # statesSubsequences [[seq],[seq],[seq]]
     statesSubsequences = getStatesSubsequences(direction, states)
 
-    # eventsSubsequences[user from list][dataframe of eventsSubsequence]    subsequences of events
-    # eventsCodesSubsequences[user from list][event codes subsequence]      only codes from subsequences of events
+    # eventsSubsequences[dataframe of eventsSubsequence]    subsequences of events
+    # eventsCodesSubsequences[event codes subsequence]      only codes from subsequences of events
     eventsSubsequences, eventsCodesSubsequences = getEventsSubsequences(statesSubsequences, events)
-    # print(eventsSubsequences[0])
-    # print(eventsCodesSubsequences[0])
     # start = time.time()
-    patternsUser1 = minePatterns(eventsCodesSubsequences[0], 10, bide)
+    patterns = minePatterns(eventsCodesSubsequences, 10, bide)
     # end = time.time()
     # print("Optimized: ", end-start)
 
-    patternsUser1Score = addScoreToPatterns(patternsUser1, eventsSubsequences[0])
-    print(patternsUser1Score)
+    patternsScore = addScoreToPatterns(patterns, eventsSubsequences)
+    print(patternsScore)
 
     # events["date"] = np.nan
     # events["date"] = events.apply(lambda row: row["date_time"].date(), axis = 1)
@@ -163,9 +133,13 @@ def inputHandling(argv):
     if argv[2] not in ["true", "false", 1, 0]:
         print("Bad BIDE argument. Use \"true\" or 1, or \"false\" or 0.")
         sys.exit()
+    if not path.exists(argv[3]) or not path.isfile(argv[3]):
+        print("Data path does not exist or is not a file.")
+        sys.exit()
 
 if __name__ == "__main__": 
     inputHandling(sys.argv)
     direction = sys.argv[1]
     bide = sys.argv[2]
-    main(direction, bide)
+    filepath = sys.argv[3]
+    main(direction, bide, filepath)

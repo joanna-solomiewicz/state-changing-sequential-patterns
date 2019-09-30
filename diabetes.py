@@ -1,5 +1,4 @@
 import pandas as pd
-from os import listdir
 
 eventsDictionary = {
     33: "Regular insulin dose",
@@ -24,19 +23,13 @@ eventsDictionary = {
     72: "Unspecified special event"
 }
 
-def prepareDataDiabetes():
-    diabetes = combineData()
+def prepareDataDiabetes(filepath):
+    diabetes = readData(filepath)
     events, states = splitEventsStatesDiabetes(diabetes)
     return events, states
 
-def combineData():
-    diabetesCombined = pd.DataFrame()
-    for file in listdir("data/diabetes"):
-        user = file[-2:]
-        diabetes = readCSV("data/diabetes/data-" + user)
-        diabetes["user"] = int(user)
-        diabetesCombined = pd.concat([diabetesCombined, diabetes])
-    return diabetesCombined
+def readData(filepath):
+    return pd.DataFrame(readCSV(filepath))
 
 def readCSV(filename):
     diabetes = pd.read_csv(filename, sep="\t", header = None, names=["date", "time", "code", "value"], parse_dates=[["date", "time"]])
