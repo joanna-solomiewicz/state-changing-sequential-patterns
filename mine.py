@@ -78,8 +78,15 @@ def checkIfPatternElementsInSequenceInOrder(pattern, sequence):
                 return False
     return True
 
+def getNumberOfEventSequences(events):
+    events["date"] = np.nan
+    events["date"] = events.apply(lambda row: row["date_time"].date(), axis = 1)
+    events_by_day = events.groupby("date")
+    return len(events_by_day)
+
 # add a score measure to patterns - score is a sum of state differences in sequences where a pattern occurs
-def addScoreToPatterns(patterns, eventsSubsequences):
+def addScoreToPatterns(patterns, eventsSubsequences, events):
+    numberOfEventSequences = getNumberOfEventSequences(events)
     patterns_w_score = []
     for pattern in patterns:
         score = 0.0
@@ -87,7 +94,8 @@ def addScoreToPatterns(patterns, eventsSubsequences):
         for subsequence in eventsSubsequences:
             if (checkIfPatternElementsInSequence(pattern[1], subsequence["code"].tolist()) and checkIfPatternElementsInSequenceInOrder(pattern[1], subsequence["code"].tolist())):
                 score = score + subsequence.iloc[0]["difference"]
-        pattern = pattern + (score,)
+        support = pattern[0] / numberOfEventSequences
+        pattern = pattern + (score, support,)
         patterns_w_score.append(pattern)
     return patterns_w_score
 
@@ -110,14 +118,11 @@ def main(filepath, direction, threshold, bide):
     # end = time()
     # print("Optimized: ", end-start)
 
-    patternsScore = addScoreToPatterns(patterns, eventsSubsequences)
+    patternsScore = addScoreToPatterns(patterns, eventsSubsequences, events)
     print(patternsScore)
 
-    # events["date"] = np.nan
-    # events["date"] = events.apply(lambda row: row["date_time"].date(), axis = 1)
 
     # events_sequences = []
-    # events_by_day = events.groupby("date")
     # for day, group in events_by_day: 
     #     group.reset_index(drop=True, inplace=True)
     #     events_in_day = group["code"].tolist()
