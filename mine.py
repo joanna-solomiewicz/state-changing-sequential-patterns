@@ -10,15 +10,19 @@ def minePatterns(sequences, threshold, ifclosed):
     patterns = ps.frequent(threshold, closed = ifclosed)
     return patterns
 
+def groupDataFrameByDate(df):
+    df["date"] = np.nan
+    df["date"] = df.apply(lambda row: row["date_time"].date(), axis = 1)
+    df_by_date = df.groupby("date")
+    return df_by_date
+
 # get monotonic subsequences - increasing or decreasing
 def getStatesSubsequences(direction, states):
     subsequences = []
     sequence = []
 
     # grouping sequential database into sequences by date
-    states["date"] = np.nan
-    states["date"] = states.apply(lambda row: row["date_time"].date(), axis = 1)
-    states_by_date = states.groupby("date")
+    states_by_date = groupDataFrameByDate(states)
 
     for _, group in states_by_date:   # _ is a date we group by, group is dataframe of measurements in that group (single sequence)
         group.reset_index(drop=True, inplace=True)
@@ -78,35 +82,37 @@ def checkIfPatternElementsInSequenceInOrder(pattern, sequence):
                 return False
     return True
 
-def getNumberOfEventSequences(events):
-    events["date"] = np.nan
-    events["date"] = events.apply(lambda row: row["date_time"].date(), axis = 1)
-    events_by_day = events.groupby("date")
-    return len(events_by_day)
-
 # add a score measure to patterns - score is a sum of state differences in sequences where a pattern occurs
-def addScoreToPatterns(patterns, eventsSubsequences, events):
-    numberOfEventSequences = getNumberOfEventSequences(events)
-    patterns_w_score = []
+def addMeasuresToPatterns(patterns, eventsSubsequences, events):
+    # grouping sequential database into sequences by date
+    events_by_date = groupDataFrameByDate(events)
+
+    allSequencesCount = len(events_by_date)
+    patternsWithMeasures = []
+
     for pattern in patterns:
         score = 0.0
-        # for every pattern check in how many sequences it appears and sum all differences as score measure
+        occurInAll = 0
+        # for every pattern check in how many state changing sequences it appears and sum all differences as score measure
         for subsequence in eventsSubsequences:
             if (checkIfPatternElementsInSequence(pattern[1], subsequence["code"].tolist()) and checkIfPatternElementsInSequenceInOrder(pattern[1], subsequence["code"].tolist())):
                 score = score + subsequence.iloc[0]["difference"]
-        support = pattern[0] / numberOfEventSequences
-        pattern = pattern + (score, support,)
-        patterns_w_score.append(pattern)
-    return patterns_w_score
+        # for every pattern check in how many sequences it appears
+        for _, sequence in events_by_date:
+            sequence.reset_index(drop=True, inplace=True)
+            if (checkIfPatternElementsInSequence(pattern[1], sequence["code"].tolist()) and checkIfPatternElementsInSequenceInOrder(pattern[1], sequence["code"].tolist())):
+                occurInAll = occurInAll + 1
+        
+        # calculate the measures
+        occurInChange = pattern[0]
+        support = occurInChange / allSequencesCount
+        confidence = occurInChange / occurInAll
+        pattern = pattern + (score, support, confidence, )
+        patternsWithMeasures.append(pattern)
 
+    return patternsWithMeasures
 
-def main(filepath, direction, threshold, bide):
-
-    # prepare raw data in expected format
-    # states has date_time, value
-    # events has data_time, code
-    events, states = prepareDataDiabetes(filepath)
-
+def dataMining(events, states, direction, threshold, bide):
     # statesSubsequences [[seq],[seq],[seq]]
     statesSubsequences = getStatesSubsequences(direction, states)
 
@@ -118,9 +124,25 @@ def main(filepath, direction, threshold, bide):
     # end = time()
     # print("Optimized: ", end-start)
 
-    patternsScore = addScoreToPatterns(patterns, eventsSubsequences, events)
+    # result is list of tuples (numberOfOccurencesOfPatternInChangeEvents, pattern, score, support, confidence)
+    patternsScore = addMeasuresToPatterns(patterns, eventsSubsequences, events)
     print(patternsScore)
 
+def getOppositeDirection(direction):
+    directions = ["up", "down"]
+    directions.remove(direction)
+    return directions[0]
+
+
+def main(filepath, direction, threshold, bide):
+
+    # prepare raw data in expected format
+    # states has date_time, value
+    # events has data_time, code
+    events, states = prepareDataDiabetes(filepath)
+
+    dataMining(events, states, direction, threshold, bide)
+    dataMining(events, states, getOppositeDirection(direction), threshold, bide)
 
     # events_sequences = []
     # for day, group in events_by_day: 
