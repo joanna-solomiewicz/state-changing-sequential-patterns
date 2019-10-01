@@ -79,14 +79,12 @@ def checkIfPatternElementsInSequenceInOrder(pattern, sequence):
     return True
 
 # add a score measure to patterns - score is a sum of state differences in sequences where a pattern occurs
-def addScoreToPatterns(patterns, userEventsSubsequences):
+def addScoreToPatterns(patterns, eventsSubsequences):
     patterns_w_score = []
     for pattern in patterns:
         score = 0.0
-        # for every pattern check in how many sequences it appears and add all differences as score measure
-        for subsequence in userEventsSubsequences:
-            # if subsequence["code"].tolist() == pattern[1]: #only checks if pattern == subsequence, not if pattern in subsequence
-            # if (all([checkIfElementInList(elem, subsequence["code"].tolist()) for elem in pattern[1]]) and ):
+        # for every pattern check in how many sequences it appears and sum all differences as score measure
+        for subsequence in eventsSubsequences:
             if (checkIfPatternElementsInSequence(pattern[1], subsequence["code"].tolist()) and checkIfPatternElementsInSequenceInOrder(pattern[1], subsequence["code"].tolist())):
                 score = score + subsequence.iloc[0]["difference"]
         pattern = pattern + (score,)
