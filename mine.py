@@ -1,10 +1,10 @@
-import sys
+from validations import parseArguments
 from prefixspan import PrefixSpan
 from diabetes import prepareDataDiabetes, eventsDictionary
+import sys
 import numpy as np
 import time
 from datetime import date
-from os import path
 
 def minePatterns(sequences, threshold, ifclosed):
     ps = PrefixSpan(sequences)
@@ -85,7 +85,7 @@ def addScoreToPatterns(patterns, userEventsSubsequences):
     return patterns_w_score
 
 
-def main(direction, bide, filepath):
+def main(filepath, direction, threshold, bide):
 
     # prepare raw data in expected format
     # states has date_time, value
@@ -99,7 +99,7 @@ def main(direction, bide, filepath):
     # eventsCodesSubsequences[event codes subsequence]      only codes from subsequences of events
     eventsSubsequences, eventsCodesSubsequences = getEventsSubsequences(statesSubsequences, events)
     # start = time.time()
-    patterns = minePatterns(eventsCodesSubsequences, 10, bide)
+    patterns = minePatterns(eventsCodesSubsequences, threshold, bide)
     # end = time.time()
     # print("Optimized: ", end-start)
 
@@ -123,23 +123,6 @@ def main(direction, bide, filepath):
 
     # print(patternsUser1_1)
 
-def inputHandling(argv):
-    if len(argv) < 3:
-        print("Please provide required parameters.")
-        sys.exit()
-    if argv[1] not in ["up", "down"]:
-        print("Bad direction argument. Use \"up\" or \"down\".")
-        sys.exit()
-    if argv[2] not in ["true", "false", 1, 0]:
-        print("Bad BIDE argument. Use \"true\" or 1, or \"false\" or 0.")
-        sys.exit()
-    if not path.exists(argv[3]) or not path.isfile(argv[3]):
-        print("Data path does not exist or is not a file.")
-        sys.exit()
-
 if __name__ == "__main__": 
-    inputHandling(sys.argv)
-    direction = sys.argv[1]
-    bide = sys.argv[2]
-    filepath = sys.argv[3]
-    main(direction, bide, filepath)
+    args = parseArguments()
+    main(args.filepath, args.direction, args.threshold, args.bide)
