@@ -126,9 +126,9 @@ def dataMining(events, states, direction, threshold, bide):
     # print("Optimized: ", end-start)
 
     # result is list of tuples (numberOfOccurencesOfPatternInChangeEvents, pattern, score, support, confidence)
-    patternsScore = addMeasuresToPatterns(patterns, eventsSubsequences, events)
-    print(patternsScore)
-    return patternsScore
+    patternsMeasures = addMeasuresToPatterns(patterns, eventsSubsequences, events)
+    print(patternsMeasures)
+    return patternsMeasures
 
 def getOppositeDirection(direction):
     directions = ["up", "down"]
@@ -146,10 +146,20 @@ def main(filepath, direction, threshold, bide):
     # events has data_time, code
     events, states = prepareDataDiabetes(filepath)
 
-    patternsScore = dataMining(events, states, direction, threshold, bide)
-    patternsToCSV(patternsScore, "patterns.csv")
-    patternsScoreOpposite = dataMining(events, states, getOppositeDirection(direction), threshold, bide)
-    patternsToCSV(patternsScoreOpposite, "patterns_opposite.csv")
+    patterns = dataMining(events, states, direction, threshold, bide)
+    patternsOpposite = dataMining(events, states, getOppositeDirection(direction), threshold, bide)
+
+    patternsUpdatedScore = []
+    for pattern in patterns:
+        for patternOpposite in patternsOpposite:
+            if(pattern[1] == patternOpposite[1]):
+                pattern = list(pattern)
+                pattern[2] = pattern[2] + patternOpposite[2]
+                pattern = tuple(pattern)
+        patternsUpdatedScore.append(pattern)
+    
+    print(patternsUpdatedScore)
+    patternsToCSV(patternsUpdatedScore, "patterns.csv")
 
     # events_sequences = []
     # for day, group in events_by_day: 
