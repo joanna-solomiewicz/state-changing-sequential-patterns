@@ -1,9 +1,8 @@
 from validations import parseArguments
 from prefixspan import PrefixSpan
 from diabetes import prepareDataDiabetes, eventsDictionary
-import sys
 import numpy as np
-import time
+from time import time
 from datetime import date
 
 def minePatterns(sequences, threshold, ifclosed):
@@ -98,9 +97,9 @@ def main(filepath, direction, threshold, bide):
     # eventsSubsequences[dataframe of eventsSubsequence]    subsequences of events
     # eventsCodesSubsequences[event codes subsequence]      only codes from subsequences of events
     eventsSubsequences, eventsCodesSubsequences = getEventsSubsequences(statesSubsequences, events)
-    # start = time.time()
+    # start = time()
     patterns = minePatterns(eventsCodesSubsequences, threshold, bide)
-    # end = time.time()
+    # end = time()
     # print("Optimized: ", end-start)
 
     patternsScore = addScoreToPatterns(patterns, eventsSubsequences)
@@ -116,9 +115,9 @@ def main(filepath, direction, threshold, bide):
     #     events_in_day = group["code"].tolist()
     #     events_sequences.append(events_in_day)
 
-    # start = time.time()
+    # start = time()
     # patternsUser1_1 = minePatterns(events_sequences, 20, bide)
-    # end = time.time()
+    # end = time()
     # print("Not optimized: ", end-start)
 
     # print(patternsUser1_1)
