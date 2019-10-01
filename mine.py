@@ -4,6 +4,7 @@ from diabetes import prepareDataDiabetes, eventsDictionary
 import numpy as np
 from time import time
 from datetime import date
+import pandas as pd
 
 def minePatterns(sequences, threshold, ifclosed):
     ps = PrefixSpan(sequences)
@@ -127,12 +128,16 @@ def dataMining(events, states, direction, threshold, bide):
     # result is list of tuples (numberOfOccurencesOfPatternInChangeEvents, pattern, score, support, confidence)
     patternsScore = addMeasuresToPatterns(patterns, eventsSubsequences, events)
     print(patternsScore)
+    return patternsScore
 
 def getOppositeDirection(direction):
     directions = ["up", "down"]
     directions.remove(direction)
     return directions[0]
 
+def patternsToCSV(patterns, filename = "patterns.csv"):
+    df = pd.DataFrame(patterns)
+    df.to_csv(filename, index = False, header = ["occurencesInChangeEvents", "pattern", "score", "support", "confidence"])
 
 def main(filepath, direction, threshold, bide):
 
@@ -141,8 +146,10 @@ def main(filepath, direction, threshold, bide):
     # events has data_time, code
     events, states = prepareDataDiabetes(filepath)
 
-    dataMining(events, states, direction, threshold, bide)
-    dataMining(events, states, getOppositeDirection(direction), threshold, bide)
+    patternsScore = dataMining(events, states, direction, threshold, bide)
+    patternsToCSV(patternsScore, "patterns.csv")
+    patternsScoreOpposite = dataMining(events, states, getOppositeDirection(direction), threshold, bide)
+    patternsToCSV(patternsScoreOpposite, "patterns_opposite.csv")
 
     # events_sequences = []
     # for day, group in events_by_day: 
