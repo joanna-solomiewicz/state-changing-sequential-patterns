@@ -14,15 +14,25 @@ def minePatterns(sequences, threshold, ifclosed):
 def getStatesSubsequences(direction, states):
     subsequences = []
     sequence = []
-    for idx, measurement in states.iterrows(): # idx is an index of iterator, measurement is a row in our user states
-        if(idx == 0 or 
-            (direction == "up" and states.iloc[idx-1]["value"] <= measurement["value"]) or  # when dir is up
-            (direction == "down" and states.iloc[idx-1]["value"] >= measurement["value"])): # when dir is down
-            sequence.append(measurement.copy())
-        else:
-            subsequences.append(sequence.copy())
-            sequence.clear()
-            sequence.append(measurement.copy())
+
+    # grouping sequential database into sequences by date
+    states["date"] = np.nan
+    states["date"] = states.apply(lambda row: row["date_time"].date(), axis = 1)
+    states_by_date = states.groupby("date")
+
+    for _, group in states_by_date:   # _ is a date we group by, group is dataframe of measurements in that group (single sequence)
+        group.reset_index(drop=True, inplace=True)
+        for idx, measurement in group.iterrows(): # idx is an index of iterator, measurement is a row in our states sequence
+            if(idx == 0 or 
+                (direction == "up" and states.iloc[idx-1]["value"] <= measurement["value"]) or  # when dir is up
+                (direction == "down" and states.iloc[idx-1]["value"] >= measurement["value"])): # when dir is down
+                sequence.append(measurement.copy())
+            else:
+                subsequences.append(sequence.copy())
+                sequence.clear()
+                sequence.append(measurement.copy())
+        subsequences.append(sequence.copy())
+        sequence.clear()
     return subsequences
 
 # get event subsequences during state subsequences change timeframe
