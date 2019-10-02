@@ -137,7 +137,27 @@ def getOppositeDirection(direction):
 
 def patternsToCSV(patterns, filename = "patterns.csv"):
     df = pd.DataFrame(patterns)
-    df.to_csv(filename, index = False, header = ["occurencesInChangeEvents", "pattern", "score", "support", "confidence"])
+    df.to_csv(filename, index = False, header = ["allOccurences", "pattern", "score", "support", "confidence"])
+
+def updatePatternsByOppositeResults(patterns, patternsOpposite):
+    patternsUpdatedScore = []
+    for pattern in patterns:
+        oppositeExists = False
+        for patternOpposite in patternsOpposite:
+            if(pattern[1] == patternOpposite[1]):
+                pattern = list(pattern)
+                pattern[2] = (pattern[2] + patternOpposite[2]) / (pattern[0] + patternOpposite[0])
+                pattern = tuple(pattern)
+                oppositeExists = True
+                break
+        if not oppositeExists:
+            pattern = list(pattern)
+            pattern[2] = pattern[2] / pattern[0]
+            pattern = tuple(pattern)
+
+        patternsUpdatedScore.append(pattern)
+    return patternsUpdatedScore
+    
 
 def main(filepath, direction, threshold, bide):
 
@@ -148,16 +168,8 @@ def main(filepath, direction, threshold, bide):
 
     patterns = dataMining(events, states, direction, threshold, bide)
     patternsOpposite = dataMining(events, states, getOppositeDirection(direction), threshold, bide)
+    patternsUpdatedScore = updatePatternsByOppositeResults(patterns, patternsOpposite)
 
-    patternsUpdatedScore = []
-    for pattern in patterns:
-        for patternOpposite in patternsOpposite:
-            if(pattern[1] == patternOpposite[1]):
-                pattern = list(pattern)
-                pattern[2] = pattern[2] + patternOpposite[2]
-                pattern = tuple(pattern)
-        patternsUpdatedScore.append(pattern)
-    
     print(patternsUpdatedScore)
     patternsToCSV(patternsUpdatedScore, "patterns.csv")
 
