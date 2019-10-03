@@ -1,6 +1,7 @@
 from validations import parseArguments
 from prefixspan import PrefixSpan
 from diabetes import prepareDataDiabetes, eventsDictionary
+from posts import prepareDataPosts
 import numpy as np
 from time import time
 from datetime import date
@@ -164,7 +165,8 @@ def main(filepath, direction, threshold, bide):
     # prepare raw data in expected format
     # states has date_time, value
     # events has data_time, code
-    events, states = prepareDataDiabetes(filepath)
+    # events, states = prepareDataDiabetes(filepath)
+    events, states = prepareDataPosts(filepath)
 
     patterns = dataMining(events, states, direction, threshold, bide)
     patternsOpposite = dataMining(events, states, getOppositeDirection(direction), threshold, bide)
