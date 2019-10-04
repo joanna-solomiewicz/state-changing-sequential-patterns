@@ -162,15 +162,15 @@ def updatePatternsByOppositeResults(patterns, patternsOpposite):
     return patternsUpdatedScore
     
 
-def main(filepath, direction, threshold, bide):
+def main(file, direction, threshold, user, bide):
 
     # prepare raw data in expected format
     # states has date_time, value
     # events has data_time, code
-    # events, states = prepareDataDiabetes(filepath)
-    # events, states = prepareDataPosts(filepath)
-    # events, states = prepareDataUnknownSet(filepath)
-    events, states = prepareDataUnknownSet2(filepath)
+    if (file == 'diabetes'): events, states = prepareDataDiabetes(user)
+    elif (file == 'posts'): events, states = prepareDataPosts()
+    elif (file == 'unknown1'): events, states = prepareDataUnknownSet(user)
+    elif (file == 'unknown2'): events, states = prepareDataUnknownSet2(user)
 
     patterns = dataMining(events, states, direction, threshold, bide)
     patternsOpposite = dataMining(events, states, getOppositeDirection(direction), threshold, bide)
@@ -194,4 +194,4 @@ def main(filepath, direction, threshold, bide):
 
 if __name__ == "__main__": 
     args = parseArguments()
-    main(args.filepath, args.direction, args.threshold, args.bide)
+    main(args.file, args.direction, args.threshold, args.user, args.bide)

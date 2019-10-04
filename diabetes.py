@@ -23,16 +23,23 @@ eventsDictionary = {
     72: "Unspecified special event"
 }
 
-def prepareDataDiabetes(filepath):
-    diabetes = readData(filepath)
+def prepareDataDiabetes(user):
+    diabetes = readData(user)
     events, states = splitEventsStatesDiabetes(diabetes)
     return events, states
 
-def readData(filepath):
-    return pd.DataFrame(readCSV(filepath))
+def readData(user):
+    return pd.DataFrame(readCSV(user))
 
-def readCSV(filename):
-    diabetes = pd.read_csv(filename, sep="\t", header = None, names=["date", "time", "code", "value"], parse_dates=[["date", "time"]])
+def readCSV(user):
+    if user == -1:
+        diabetes = pd.read_csv("./data/diabetes/diabetes_merged.csv", sep="\t", header = None, names=["date", "time", "code", "value"], parse_dates=[["date", "time"]])
+    else:
+        if user < 10:
+            filename = 'data-0' + str(user)
+        else:
+            filename = 'data-' + str(user)
+        diabetes = pd.read_csv("./data/diabetes/" + filename, sep="\t", header = None, names=["date", "time", "code", "value"], parse_dates=[["date", "time"]])
     diabetes = diabetes.sort_values(by = ["date_time"], ascending = True)
     return diabetes
     

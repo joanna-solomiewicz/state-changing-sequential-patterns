@@ -7,16 +7,16 @@ eventsDictionary = {
     "video":    4
 }
 
-def prepareDataPosts(filepath):
-    posts = readData(filepath)
+def prepareDataPosts():
+    posts = readData()
     events, states = splitEventsStatesPosts(posts)
     return events, states
 
-def readData(filepath):
-    return pd.DataFrame(readCSV(filepath))
+def readData():
+    return pd.DataFrame(readCSV())
 
-def readCSV(filename):
-    posts = pd.read_csv(filename, sep=",", parse_dates=["status_published"], dayfirst=False)
+def readCSV():
+    posts = pd.read_csv("./data/posts.csv", sep=",", parse_dates=["status_published"], dayfirst=False)
     posts = posts.sort_values(by = ["status_published"], ascending = True)
     posts.reset_index(drop=True, inplace=True)
     reaction = [sum(entry[5:9]) - sum(entry[10:12]) for _, entry in posts.iterrows()]

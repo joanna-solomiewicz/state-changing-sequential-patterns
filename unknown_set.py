@@ -1,15 +1,17 @@
 import pandas as pd
 
-def prepareDataUnknownSet(filepath):
-    unknownset = readData(filepath)
+def prepareDataUnknownSet(user):
+    unknownset = readData(user)
     events, states = splitEventsStatesUnknownSet(unknownset)
     return events, states
 
-def readData(filepath):
-    return pd.DataFrame(readCSV(filepath))
+def readData(user):
+    return pd.DataFrame(readCSV(user))
 
-def readCSV(filename):
-    unknownset = pd.read_csv(filename, sep=",", parse_dates=[["Date", "Time"]], dayfirst=False)
+def readCSV(user):
+    unknownset = pd.read_csv("./data/events.csv", sep=",", parse_dates=[["Date", "Time"]], dayfirst=False)
+    if user != -1:
+        unknownset = unknownset[unknownset.UserId == user]
     unknownset = unknownset.sort_values(by = ["Date_Time"], ascending = True)
     unknownset.reset_index(drop=True, inplace=True)
     unknownset = unknownset.drop(columns = ["UserId"])
