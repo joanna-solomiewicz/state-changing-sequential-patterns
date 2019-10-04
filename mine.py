@@ -140,7 +140,10 @@ def getOppositeDirection(direction):
 
 def patternsToCSV(patterns, filename = "patterns.csv"):
     df = pd.DataFrame(patterns)
-    df.to_csv(filename, index = False, header = ["allOccurences", "pattern", "score", "support", "confidence"])
+    if df.empty:
+        print("No patterns found.")
+    else:
+        df.to_csv(filename, index = False, header = ["allOccurences", "pattern", "score", "support", "confidence"])
 
 def updatePatternsByOppositeResults(patterns, patternsOpposite):
     patternsUpdatedScore = []
