@@ -9,7 +9,7 @@ def readData(user):
     return pd.DataFrame(readCSV(user))
 
 def readCSV(user):
-    unknownset = pd.read_csv("./data/events.csv", sep=",", parse_dates=[["Date", "Time"]], dayfirst=False)
+    unknownset = pd.read_csv("./data/events.csv", sep=",", parse_dates=[["Date", "Time"]])
     if user != -1:
         unknownset = unknownset[unknownset.UserId == user]
     unknownset = unknownset.sort_values(by = ["Date_Time"], ascending = True)

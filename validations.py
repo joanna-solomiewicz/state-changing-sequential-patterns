@@ -25,6 +25,7 @@ def parseArguments():
     parser.add_argument("direction", help="Direction of search: up or down.", type=lambda arg: isValidDirection(parser, arg))
 
     parser.add_argument("-t", "--threshold", help="Support measure threshold.", type=int, default=10)
+    parser.add_argument("-m", "--minlen", help="Minumum length of pattern.", type=int, default=1)
     parser.add_argument("-u", "--user", help="User number.", type=int, default=-1)
     parser.add_argument("-b", "--bide", help="Whether to use BIDE algorithm.", type=lambda arg: isValidBide(parser, arg), default="false")
 
