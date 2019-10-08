@@ -2,8 +2,8 @@ from validations import parseArguments
 from prefixspan import PrefixSpan
 from diabetes import prepareDataDiabetes, eventsDictionary
 from posts import prepareDataPosts
-from unknown_set import prepareDataUnknownSet
-from unknown_set2 import prepareDataUnknownSet2
+from anonymized1 import prepareDataAnonymizedSet1
+from anonymized2 import prepareDataAnonymizedSet2
 import numpy as np
 from time import time
 from datetime import date
@@ -133,11 +133,8 @@ def dataMining(events, states, direction, threshold, minlen, bide):
     # eventsCodesSubsequences[event codes subsequence]      only codes from subsequences of events
     eventsSubsequences, eventsCodesSubsequences = getEventsSubsequences(statesSubsequences, events)
     print("Event subsequences done\t\t", datetime.datetime.now())
-    # start = time()
     patterns = minePatterns(eventsCodesSubsequences, threshold, minlen, bide)
     print("Patterns done\t\t\t", datetime.datetime.now())
-    # end = time()
-    # print("Optimized: ", end-start)
 
     # result is list of tuples (numberOfOccurencesOfPatternInChangeEvents, pattern, score, support, confidence)
     patternsMeasures = addMeasuresToPatterns(patterns, eventsSubsequences, events)
@@ -185,8 +182,8 @@ def main(file, direction, threshold, minlen, user, bide):
     # events has data_time, code
     if (file == 'diabetes'): events, states = prepareDataDiabetes(user)
     elif (file == 'posts'): events, states = prepareDataPosts()
-    elif (file == 'unknown1'): events, states = prepareDataUnknownSet(user)
-    elif (file == 'unknown2'): events, states = prepareDataUnknownSet2(user)
+    elif (file == 'anonymized1'): events, states = prepareDataAnonymizedSet1(user)
+    elif (file == 'anonymized2'): events, states = prepareDataAnonymizedSet2(user)
     print("Preparing done\t\t\t", datetime.datetime.now())
 
     patterns = dataMining(events, states, direction, threshold, minlen, bide)
@@ -199,18 +196,10 @@ def main(file, direction, threshold, minlen, user, bide):
     patternsToCSV(patternsUpdatedScore, "patterns.csv")
     print("Done\t\t\t\t", datetime.datetime.now())
 
-    # events_sequences = []
-    # for day, group in events_by_day: 
-    #     group.reset_index(drop=True, inplace=True)
-    #     events_in_day = group["code"].tolist()
-    #     events_sequences.append(events_in_day)
-
-    # start = time()
-    # patternsUser1_1 = minePatterns(events_sequences, 20, bide)
-    # end = time()
-    # print("Not optimized: ", end-start)
-
-    # print(patternsUser1_1)
+    # events_sequences = [group["code"].tolist() for _, group in groupDataFrameByDate(events)]
+    # patterns = minePatterns(events_sequences, threshold, minlen, bide)
+    # print(patterns)
+    # print("Done\t\t\t\t", datetime.datetime.now())
 
 if __name__ == "__main__": 
     args = parseArguments()

@@ -1,7 +1,7 @@
 import argparse
 
 def isValidDataName(parser, arg):
-    if arg not in ["diabetes", "posts", "unknown1", "unknown2"]:
+    if arg not in ["diabetes", "posts", "anonymized1", "anonymized2"]:
         parser.error("Dataset %s does not exist." % arg)
     else:
         return arg
@@ -21,7 +21,7 @@ def isValidBide(parser, arg):
 def parseArguments():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("file", help="Data set name: diabetes, posts, unknown1 or unknown2.", type=lambda arg: isValidDataName(parser, arg))
+    parser.add_argument("file", help="Data set name: diabetes, posts, anonymized1 or anonymized2.", type=lambda arg: isValidDataName(parser, arg))
     parser.add_argument("direction", help="Direction of search: up or down.", type=lambda arg: isValidDirection(parser, arg))
 
     parser.add_argument("-t", "--threshold", help="Support measure threshold.", type=int, default=10)

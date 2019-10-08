@@ -26,7 +26,7 @@ pip install prefixspan
 The project requires 2 parameters - data set name and direction.
 There are also 4 optional parameters - threshold, minimum pattern length, user, BIDE.
 
-There are four data sets implemented. Their names are diabetes, posts, unknown1 and unknown2.
+There are four data sets implemented. Their names are *diabetes*, *posts*, *anonymized1* and *anonymized2*.
 
 Direction specifies which state changes are examined, increasing or decreasing. They should be provided as *up* or *down*.
 
