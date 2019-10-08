@@ -1,14 +1,13 @@
 from validations import parseArguments
-from prefixspan import PrefixSpan
 from diabetes import prepareDataDiabetes, eventsDictionary
 from posts import prepareDataPosts
 from anonymized1 import prepareDataAnonymizedSet1
 from anonymized2 import prepareDataAnonymizedSet2
+from prefixspan import PrefixSpan
+import pandas as pd
 import numpy as np
 from time import time
-from datetime import date
-import pandas as pd
-import datetime
+from datetime import date, datetime
 
 def minePatterns(sequences, threshold, minlen, ifclosed):
     ps = PrefixSpan(sequences)
@@ -99,14 +98,19 @@ def addMeasuresToPatterns(patterns, eventsSubsequences, events):
     for pattern in patterns:
         score = 0.0
         occurInAll = 0
+        supportingSequencesCount = 0
+        occurInChangeRealSet = set()
         # for every pattern check in how many state changing sequences it appears and sum all differences as score measure
         for subsequence in eventsSubsequences:
             if (checkIfPatternElementsInSequence(pattern[1], subsequence["code"].tolist()) and checkIfPatternElementsInSequenceInOrder(pattern[1], subsequence["code"].tolist())):
                 score = score + subsequence.iloc[0]["difference"]
+                occurInChangeRealSet.add(subsequence.iloc[0]["date_time"].date())
         # for every pattern check in how many sequences it appears
         for _, sequence in events_by_date:
             sequence.reset_index(drop=True, inplace=True)
             sequence = sequence["code"].tolist()
+            if (checkIfPatternElementsInSequence(pattern[1], sequence) and checkIfPatternElementsInSequenceInOrder(pattern[1], sequence)):
+                supportingSequencesCount = supportingSequencesCount + 1
             while (checkIfPatternElementsInSequence(pattern[1], sequence) and checkIfPatternElementsInSequenceInOrder(pattern[1], sequence)):
                 occurInAll = occurInAll + 1
                 if(len(pattern[1]) <= len(sequence) and getElementIndex(pattern[1][-1], sequence) > -1):
@@ -119,7 +123,13 @@ def addMeasuresToPatterns(patterns, eventsSubsequences, events):
         support = occurInChange / allSequencesCount
         supportAll = occurInAll / allSequencesCount
         confidence = support / supportAll
-        pattern = pattern + (score, support, confidence, )
+
+        occurInChangeReal = len(occurInChangeRealSet)
+        supportReal = occurInChangeReal / allSequencesCount
+        supportAllReal = supportingSequencesCount / allSequencesCount
+        confidenceReal = supportReal / supportAllReal
+
+        pattern = pattern + (score, support, confidence, supportReal, confidenceReal, )
         patternsWithMeasures.append(pattern)
 
     return patternsWithMeasures
@@ -127,18 +137,18 @@ def addMeasuresToPatterns(patterns, eventsSubsequences, events):
 def dataMining(events, states, direction, threshold, minlen, bide):
     # statesSubsequences [[seq],[seq],[seq]]
     statesSubsequences = getStatesSubsequences(direction, states)
-    print("States subsequences done\t", datetime.datetime.now())
+    print("States subsequences done\t", datetime.now())
 
     # eventsSubsequences[dataframe of eventsSubsequence]    subsequences of events
     # eventsCodesSubsequences[event codes subsequence]      only codes from subsequences of events
     eventsSubsequences, eventsCodesSubsequences = getEventsSubsequences(statesSubsequences, events)
-    print("Event subsequences done\t\t", datetime.datetime.now())
+    print("Event subsequences done\t\t", datetime.now())
     patterns = minePatterns(eventsCodesSubsequences, threshold, minlen, bide)
-    print("Patterns done\t\t\t", datetime.datetime.now())
+    print("Patterns done\t\t\t", datetime.now())
 
     # result is list of tuples (numberOfOccurencesOfPatternInChangeEvents, pattern, score, support, confidence)
     patternsMeasures = addMeasuresToPatterns(patterns, eventsSubsequences, events)
-    print("Measures done\t\t\t", datetime.datetime.now())
+    print("Measures done\t\t\t", datetime.now())
     return patternsMeasures
 
 def getOppositeDirection(direction):
@@ -151,7 +161,7 @@ def patternsToCSV(patterns, filename = "patterns.csv"):
     if df.empty:
         print("No patterns found.")
     else:
-        df.to_csv(filename, index = False, header = ["allOccurences", "pattern", "score", "support", "confidence"])
+        df.to_csv(filename, index = False, header = ["allOccurences", "pattern", "score", "support'", "confidence'", "support", "confidence"])
 
 def updatePatternsByOppositeResults(patterns, patternsOpposite):
     patternsUpdatedScore = []
@@ -175,7 +185,7 @@ def updatePatternsByOppositeResults(patterns, patternsOpposite):
     
 
 def main(file, direction, threshold, minlen, user, bide):
-    print("Start\t\t\t\t", datetime.datetime.now())
+    print("Start\t\t\t\t", datetime.now())
 
     # prepare raw data in expected format
     # states has date_time, value
@@ -184,22 +194,22 @@ def main(file, direction, threshold, minlen, user, bide):
     elif (file == 'posts'): events, states = prepareDataPosts()
     elif (file == 'anonymized1'): events, states = prepareDataAnonymizedSet1(user)
     elif (file == 'anonymized2'): events, states = prepareDataAnonymizedSet2(user)
-    print("Preparing done\t\t\t", datetime.datetime.now())
+    print("Preparing done\t\t\t", datetime.now())
 
     patterns = dataMining(events, states, direction, threshold, minlen, bide)
-    print("Pattern mining done\t\t", datetime.datetime.now())
+    print("Pattern mining done\t\t", datetime.now())
     patternsOpposite = dataMining(events, states, getOppositeDirection(direction), threshold, minlen, bide)
-    print("Opposite pattern mining done\t", datetime.datetime.now())
+    print("Opposite pattern mining done\t", datetime.now())
     patternsUpdatedScore = updatePatternsByOppositeResults(patterns, patternsOpposite)
-    print("Updates pattens done\t\t", datetime.datetime.now())
+    print("Updates pattens done\t\t", datetime.now())
 
     patternsToCSV(patternsUpdatedScore, "patterns.csv")
-    print("Done\t\t\t\t", datetime.datetime.now())
+    print("Done\t\t\t\t", datetime.now())
 
     # events_sequences = [group["code"].tolist() for _, group in groupDataFrameByDate(events)]
     # patterns = minePatterns(events_sequences, threshold, minlen, bide)
     # print(patterns)
-    # print("Done\t\t\t\t", datetime.datetime.now())
+    # print("Done\t\t\t\t", datetime.now())
 
 if __name__ == "__main__": 
     args = parseArguments()
