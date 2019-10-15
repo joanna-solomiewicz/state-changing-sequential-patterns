@@ -184,6 +184,17 @@ def updatePatternsByOppositeResults(patterns, patternsOpposite):
 
         patternsUpdatedScore.append(pattern)
     return patternsUpdatedScore
+
+def describePatterns(file, df):
+    if (file == 'diabetes'): 
+        df["patternDescribed"] = describePatternsDiabetes(df[1].tolist())
+        areDescribed = True
+    elif (file == 'posts'): 
+        df["patternDescribed"] = describePatternsPosts(df[1].tolist())
+        areDescribed = True
+    else:
+        areDescribed = False
+    return areDescribed, df
     
 
 def main(file, direction, threshold, minlen, user, bide):
@@ -206,14 +217,7 @@ def main(file, direction, threshold, minlen, user, bide):
     print("Updates pattens done\t\t", datetime.now())
 
     df = pd.DataFrame(patternsUpdatedScore)
-    if (file == 'diabetes'): 
-        df["patternDescribed"] = describePatternsDiabetes(df[1].tolist())
-        areDescribed = True
-    elif (file == 'posts'): 
-        df["patternDescribed"] = describePatternsPosts(df[1].tolist())
-        areDescribed = True
-    else:
-        areDescribed = False
+    areDescribed, df = describePatterns(file, df)
     patternsToCSV(df, areDescribed, "patterns.csv")
     print("Done\t\t\t\t", datetime.now())
 
