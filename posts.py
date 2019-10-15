@@ -7,6 +7,13 @@ eventsDictionary = {
     "video":    4
 }
 
+eventsCodesDictionary = {
+    1:  "link",
+    2:  "photo",
+    3:  "status",
+    4:  "video" 
+}
+
 def prepareDataPosts():
     posts = readData()
     events, states = splitEventsStatesPosts(posts)
@@ -31,3 +38,13 @@ def splitEventsStatesPosts(dataframe):
     events = dataframe.loc[:,["date_time", "code"]]
     states = dataframe.loc[:,["date_time", "value"]]
     return events, states 
+
+def describePatternsPosts(patterns):
+    describedPatterns = []
+    for pattern in patterns:
+        describedPattern = []
+        for elem in pattern:
+            describedPattern.append(eventsCodesDictionary[elem])
+        describedPatterns.append(describedPattern)
+
+    return describedPatterns

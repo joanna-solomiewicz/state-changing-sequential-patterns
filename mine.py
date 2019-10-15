@@ -1,6 +1,6 @@
 from validations import parseArguments
-from diabetes import prepareDataDiabetes, eventsDictionary
-from posts import prepareDataPosts
+from diabetes import prepareDataDiabetes, describePatternsDiabetes
+from posts import prepareDataPosts, describePatternsPosts
 from anonymized1 import prepareDataAnonymizedSet1
 from anonymized2 import prepareDataAnonymizedSet2
 from prefixspan import PrefixSpan
@@ -156,12 +156,14 @@ def getOppositeDirection(direction):
     directions.remove(direction)
     return directions[0]
 
-def patternsToCSV(patterns, filename = "patterns.csv"):
-    df = pd.DataFrame(patterns)
-    if df.empty:
+def patternsToCSV(patterns, areDescribed, filename = "patterns.csv"):
+    if patterns.empty:
         print("No patterns found.")
     else:
-        df.to_csv(filename, index = False, header = ["allOccurences", "pattern", "score", "support'", "confidence'", "support", "confidence"])
+        if areDescribed:
+            patterns.to_csv(filename, index = False, header = ["allOccurences", "pattern", "score", "support'", "confidence'", "support", "confidence", "patternDescribed"])
+        else:
+            patterns.to_csv(filename, index = False, header = ["allOccurences", "pattern", "score", "support'", "confidence'", "support", "confidence"])
 
 def updatePatternsByOppositeResults(patterns, patternsOpposite):
     patternsUpdatedScore = []
@@ -203,7 +205,16 @@ def main(file, direction, threshold, minlen, user, bide):
     patternsUpdatedScore = updatePatternsByOppositeResults(patterns, patternsOpposite)
     print("Updates pattens done\t\t", datetime.now())
 
-    patternsToCSV(patternsUpdatedScore, "patterns.csv")
+    df = pd.DataFrame(patternsUpdatedScore)
+    if (file == 'diabetes'): 
+        df["patternDescribed"] = describePatternsDiabetes(df[1].tolist())
+        areDescribed = True
+    elif (file == 'posts'): 
+        df["patternDescribed"] = describePatternsPosts(df[1].tolist())
+        areDescribed = True
+    else:
+        areDescribed = False
+    patternsToCSV(df, areDescribed, "patterns.csv")
     print("Done\t\t\t\t", datetime.now())
 
     # events_sequences = [group["code"].tolist() for _, group in groupDataFrameByDate(events)]

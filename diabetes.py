@@ -52,3 +52,13 @@ def splitEventsStatesDiabetes(dataframe):
     states.reset_index(drop=True, inplace=True)
     states = states.drop(columns="code")
     return events, states 
+
+def describePatternsDiabetes(patterns):
+    describedPatterns = []
+    for pattern in patterns:
+        describedPattern = []
+        for elem in pattern:
+            describedPattern.append(eventsDictionary[elem])
+        describedPatterns.append(describedPattern)
+
+    return describedPatterns
