@@ -88,7 +88,7 @@ def checkIfPatternElementsInSequenceInOrder(pattern, sequence):
     return True
 
 # add a score measure to patterns - score is a sum of state differences in sequences where a pattern occurs
-def addMeasuresToPatterns(patterns, eventsSubsequences, events):
+def addMeasuresToPatterns(patterns, eventsSubsequences, events, direction):
     # grouping sequential database into sequences by date
     events_by_date = groupDataFrameByDate(events)
 
@@ -129,6 +129,8 @@ def addMeasuresToPatterns(patterns, eventsSubsequences, events):
         supportAllReal = supportingSequencesCount / allSequencesCount
         confidenceReal = supportReal / supportAllReal
 
+        if(direction == "down"): score = -score
+
         pattern = pattern + (score, support, confidence, supportReal, confidenceReal, )
         patternsWithMeasures.append(pattern)
 
@@ -147,7 +149,7 @@ def dataMining(events, states, direction, threshold, minlen, bide):
     print("Patterns done\t\t\t", datetime.now())
 
     # result is list of tuples (numberOfOccurencesOfPatternInChangeEvents, pattern, score, support, confidence)
-    patternsMeasures = addMeasuresToPatterns(patterns, eventsSubsequences, events)
+    patternsMeasures = addMeasuresToPatterns(patterns, eventsSubsequences, events, direction)
     print("Measures done\t\t\t", datetime.now())
     return patternsMeasures
 
@@ -172,7 +174,7 @@ def updatePatternsByOppositeResults(patterns, patternsOpposite):
         for patternOpposite in patternsOpposite:
             if(pattern[1] == patternOpposite[1]):
                 pattern = list(pattern)
-                pattern[2] = (pattern[2] + patternOpposite[2]) / (pattern[0] + patternOpposite[0])
+                pattern[2] = (pattern[2] - patternOpposite[2]) / (pattern[0] + patternOpposite[0])
                 pattern[0] = pattern[0] + patternOpposite[0]
                 pattern = tuple(pattern)
                 oppositeExists = True
